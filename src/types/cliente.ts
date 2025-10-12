@@ -26,6 +26,16 @@ export type ClienteFormatado = {
   nome: string;
 };
 
+
+// ⚠️ Derivados para criar/editar (não mudam seu type original)
+export type ClienteCreate = Omit<
+  Cliente,
+  'id' | 'created_at' | 'updated_at' | 'data_cadastro_cliente'
+>;
+
+
+export type ClienteUpdate = Partial<ClienteCreate>;
+
 // ✅ Adicione isso:
 export interface ClientesResponse {
   data: Cliente[];      // lista de clientes
