@@ -1,27 +1,29 @@
-import React, { useState } from 'react'
-import { MdCloudDownload } from 'react-icons/md'
-import { FaPrint, FaDownload } from 'react-icons/fa'
-import axios from 'axios'
+import React, { useState } from 'react';
+import { MdCloudDownload } from 'react-icons/md';
+import { FaPrint, FaDownload } from 'react-icons/fa';
+import axios from 'axios';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 
 type ButtonGerarPDFsProps = {
-  tipo: 'com_pdf' | 'sem_pdf'
-  selecionados: number[]
+  tipo: 'com_pdf' | 'sem_pdf';
+  selecionados: number[];
   checklists: {
-    id: number
-    recebimento_id: string
-    descricao: string
-    tem_pdf: boolean
+    id: number;
+    recebimento_id: string;
+    descricao: string;
+    tem_pdf: boolean;
 
-  // Campos derivados do recebimento
-      recebimento: {
-        os_formatado: string
-        nome_cliente: string
-        produto_nome: string
-        quantidade: number
-      }
-  }[]
-  onGenerate?: () => void
-}
+    // Campos derivados do recebimento
+    recebimento: {
+      os_formatado: string;
+      nome_cliente: string;
+      produto_nome: string;
+      quantidade: number;
+    };
+  }[];
+  onGenerate?: () => void;
+};
 
 const ButtonGerarPDFs: React.FC<ButtonGerarPDFsProps> = ({
   tipo,
@@ -29,109 +31,204 @@ const ButtonGerarPDFs: React.FC<ButtonGerarPDFsProps> = ({
   checklists,
   onGenerate,
 }) => {
-  const [pdfLinks, setPdfLinks] = useState<{ id: number; url: string }[]>([])
-  const [loading, setLoading] = useState(false)
+  const [pdfLinks, setPdfLinks] = useState<{ id: number; url: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  /** Invalida todas as variações da lista de checklists e revalida Server Components (se houver) */
+  const refreshChecklist = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['checklists'], exact: false });
+    // Opcional: se sua página tem SSR/Server Components:
+    try {
+      router.refresh();
+    } catch {}
+  };
+
+  /** Aguarda o fim da impressão/fechamento do popup (com timeout de segurança) */
+  const waitForPrintEnd = (win: Window): Promise<void> =>
+    new Promise((resolve) => {
+      let resolved = false;
+
+      const done = () => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          resolve();
+        }
+      };
+
+      const onAfterPrint = () => done();
+      const onBeforeUnload = () => done();
+
+      let interval: ReturnType<typeof setInterval> | null = setInterval(() => {
+        if (win.closed) {
+          done();
+        }
+      }, 300);
+
+      const cleanup = () => {
+        if (interval) clearInterval(interval);
+        interval = null;
+        try {
+          // Alguns navegadores suportam afterprint no popup
+          win.removeEventListener('afterprint', onAfterPrint as any);
+          win.removeEventListener('beforeunload', onBeforeUnload as any);
+        } catch {}
+      };
+
+      try {
+        win.addEventListener('afterprint', onAfterPrint as any);
+        win.addEventListener('beforeunload', onBeforeUnload as any);
+      } catch {}
+
+      // Fallback: se nada disparar em 30s, seguimos em frente
+      setTimeout(done, 30_000);
+    });
 
   const handleClick = async () => {
-    setLoading(true)
-    const linksGerados: { id: number; url: string }[] = []
+    if (selecionados.length === 0) return;
+
+    setLoading(true);
+    const linksGerados: { id: number; url: string }[] = [];
 
     const checklistsFiltrados = checklists.filter(
       (c) => selecionados.includes(c.id) && (tipo === 'com_pdf' ? c.tem_pdf : !c.tem_pdf)
-    )
+    );
 
-    console.log(`📄 Iniciando geração de PDFs (${tipo}):`, checklistsFiltrados)
+    console.log(`📄 Iniciando geração de PDFs (${tipo}):`, checklistsFiltrados);
 
-    if (tipo === 'sem_pdf') {
-      for (const checklist of checklistsFiltrados) {
-        try {
+    try {
+      if (tipo === 'sem_pdf') {
+        for (const checklist of checklistsFiltrados) {
+          try {
+            // LEVAR OS DADOS PARA O BACKEND ( CHECKLIST)
+            const params = new URLSearchParams({
+              cl: checklist.recebimento.nome_cliente,
+              doc_cl: 'checklist.doc_cl',
+              produto: checklist.recebimento.os_formatado,
+              qtd: String(checklist.recebimento.quantidade),
+              orcamento: 'checklist.orcamento',
+              o: 'checklist.o',
+              a: 'checklist.a',
+              b: 'checklist.b',
+            });
 
-          // LEVAR OS DADOS PARA O BACKEND ( CHECKLIST)
-          const params = new URLSearchParams({
-                    cl: checklist.recebimento.nome_cliente,
-                    doc_cl: 'checklist.doc_cl',
-                    produto: checklist.recebimento.os_formatado,
-                    qtd: checklist.recebimento.quantidade,
-                    orcamento: 'checklist.orcamento',
-                    o: 'checklist.o',
-                    a: 'checklist.a',
-                    b: 'checklist.b',
-                  });
+            console.log('🔗 Parâmetros da URL:', params.toString());
 
-        console.log("🔗 Parâmetros da URL:", params.toString());
+            const res = await axios.get(
+              `http://localhost:8000/api/checklist/${checklist.recebimento_id}?${params.toString()}`
+            );
 
-          const res = await axios.get(
-            `http://localhost:8000/api/checklist/${checklist.recebimento_id}?${params.toString()}`
-          );
-          const url = res.data.link_pdf
-          linksGerados.push({ id: checklist.id, url })
-
-          // 👇 Imprime diretamente cada PDF
-          //await imprimirDireto(url)
-
-          console.log(`✅ PDF gerado: ${url}`)
-        } catch (err) {
-          console.error(`❌ Erro ao gerar PDF para ${checklist.recebimento_id}:`, err)
+            const url = res.data?.link_pdf;
+            if (url) {
+              linksGerados.push({ id: checklist.id, url });
+              console.log(`✅ PDF gerado: ${url}`);
+            } else {
+              console.warn(`⚠️ Resposta sem link_pdf para ${checklist.recebimento_id}`);
+            }
+          } catch (err) {
+            console.error(`❌ Erro ao gerar PDF para ${checklist.recebimento_id}:`, err);
+          }
+        }
+      } else {
+        // Simula PDFs já existentes
+        for (const checklist of checklistsFiltrados) {
+          linksGerados.push({
+            id: checklist.id,
+            url: `http://localhost:8000/storage/pdfs/${checklist.recebimento_id}.pdf`,
+          });
         }
       }
-    } else {
-      // Simula PDFs já existentes
-      for (const checklist of checklistsFiltrados) {
-        linksGerados.push({
-          id: checklist.id,
-          url: `http://localhost:8000/storage/pdfs/${checklist.recebimento_id}.pdf`,
-        })
-      }
+
+      setPdfLinks(linksGerados);
+
+      // ❌ NÃO atualizamos aqui — só depois que o usuário mandar imprimir.
+      onGenerate?.();
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setPdfLinks(linksGerados)
-    if (onGenerate) onGenerate()
-    setLoading(false)
-  }
+  /** Agora atualizamos a lista SÓ após o usuário mandar imprimir */
+  const imprimir = async (url: string) => {
+    const win = window.open(url, '_blank');
+    if (win) {
+      // Ao carregar, dispara a impressão
+      win.onload = () => {
+        try {
+          win.print();
+        } catch {}
+      };
 
-  const imprimir = (url: string) => {
-    const win = window.open(url, '_blank')
-    win?.addEventListener('load', () => win.print())
-  }
+      // Aguarda o fim da impressão/fechamento
+      await waitForPrintEnd(win);
+
+      // ✅ Agora sim, atualiza a lista
+      await refreshChecklist();
+    } else {
+      alert('Não foi possível abrir o PDF. Verifique se o bloqueador de pop-ups está ativo.');
+    }
+  };
 
   const imprimirTodos = async () => {
+    // Abre/Imprime sequencialmente e espera cada um terminar
     for (let i = 0; i < pdfLinks.length; i++) {
-      const link = pdfLinks[i]
-      const win = window.open(link.url, '_blank')
+      const link = pdfLinks[i];
+      const win = window.open(link.url, '_blank');
       if (win) {
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
+          // Dispara print ao carregar
           win.onload = () => {
-            win.print()
-            setTimeout(resolve, 1500) // Aguarda 1.5 segundos
-          }
-        })
+            try {
+              win.print();
+            } catch {}
+            // Pequeno atraso para browsers que não disparam 'afterprint' corretamente
+            setTimeout(resolve, 500);
+          };
+          // Fallbacks:
+          win.addEventListener('afterprint', () => resolve());
+          const id = setInterval(() => {
+            if (win.closed) {
+              clearInterval(id);
+              resolve();
+            }
+          }, 300);
+          // Timeout de segurança por item
+          setTimeout(() => resolve(), 30_000);
+        });
       }
     }
-  }
 
-  const idsString = pdfLinks.map((l) => l.id).join(',')
+    // ✅ Atualiza a lista UMA VEZ ao final
+    await refreshChecklist();
+  };
 
-  const imprimirDireto = (url: string) => {
-  const win = window.open(url, '_blank')
-  if (win) {
-    win.focus()
-    // Tenta imprimir após o load
-    win.onload = () => {
-      win.print()
-      // Opcional: fechar a janela após imprimir
-      setTimeout(() => {
-        win.close()
-      }, 2000)
+  const idsString = pdfLinks.map((l) => l.id).join(',');
+
+  const imprimirDireto = async (url: string) => {
+    const win = window.open(url, '_blank');
+    if (win) {
+      win.focus();
+      win.onload = () => {
+        try {
+          win.print();
+        } catch {}
+        setTimeout(() => {
+          try {
+            win.close();
+          } catch {}
+        }, 2000);
+      };
+
+      // Espera finalização e atualiza
+      await waitForPrintEnd(win);
+      await refreshChecklist();
+    } else {
+      alert('Não foi possível abrir o PDF. Verifique se o bloqueador de pop-ups está ativo.');
     }
-
-    // Fallback: imprime mesmo sem load explícito
-    setTimeout(() => {
-      win.print()
-    }, 1500)
-  } else {
-    alert('Não foi possível abrir o PDF. Verifique se o bloqueador de pop-ups está ativo.')
-  }
-}
+  };
 
   return (
     <div className="my-2 w-full">
@@ -168,7 +265,7 @@ const ButtonGerarPDFs: React.FC<ButtonGerarPDFsProps> = ({
                 </a>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => imprimir(link.url)}
+                    onClick={async () => await imprimir(link.url)} // ⬅️ agora async
                     title="Imprimir"
                     className="text-green-600 hover:text-green-800"
                   >
@@ -189,7 +286,7 @@ const ButtonGerarPDFs: React.FC<ButtonGerarPDFsProps> = ({
 
           {/* Imprimir todos */}
           <button
-            onClick={imprimirTodos}
+            onClick={imprimirTodos} // ⬅️ atualiza ao final
             className="mt-4 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 text-sm"
           >
             🖨️ Imprimir Todos
@@ -206,7 +303,7 @@ const ButtonGerarPDFs: React.FC<ButtonGerarPDFsProps> = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ButtonGerarPDFs
+export default ButtonGerarPDFs;
