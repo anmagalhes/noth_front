@@ -1,0 +1,18 @@
+// constants/status.ts
+export const Status_tarefa = {
+  NAO_INICIADO: "NAO_INICIADO",
+  AGUARDANDO_APROVACAO: "AGUARDANDO_APROVACAO",
+  APROVADO: "APROVADO",
+  FINALIZADO: 'FINALIZADO',
+  EM_ANDAMENTO: 'EM_ANDAMENTO',
+  // outros se houver
+};
+
+export const StatusTarefaEnum = {
+  NAO_INICIADO: "NAO_INICIADO",
+  AGUARDANDO_APROVACAO: "AGUARDANDO_APROVACAO",
+  APROVADO: "APROVADO",
+  FINALIZADO: 'FINALIZADO',
+  EM_ANDAMENTO: 'EM_ANDAMENTO',
+  // outros se houver
+};

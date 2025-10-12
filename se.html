@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+
+
+        <!-- META -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/scroller/2.1.1/js/dataTables.scroller.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
+    <script src="scriptContainingUpdateSheetNovasTarefas.js"></script>
+    <script src="scriptCallingTheFunction.js"></script>
+
+
+<!-- DataTables -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.21/datatables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.1.1/css/scroller.dataTables.min.css">
+
+    <!-- JS -->
+
+    <!-- jQuery -->
+    <!-- Including only once should be enough -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- jQuery UI -->
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
+
+ <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/scroller/2.1.1/js/dataTables.scroller.min.js"></script>
+
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+     <!-- Maskara inpunt data -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+
+  <!-- Personalizar o Alert -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+
+<!-- Material Design Lite -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <style>
+
+    .header {
+        background-color: #43a04d;
+        color: white;
+        padding: 10px 0;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header span {
+        color: #FFF8E1;
+        font-weight: 700;
+    }
+
+        body {
+            padding: 2rem;
+            background-color: #f8f9fa;
+        }
+        .form-control,
+        .btn {
+            border-radius: 20px;
+        }
+        .myTable {
+            height: 500px;
+            overflow-y: auto;
+        }
+
+    #filter {
+        background-color: #4CAF50; /* cor de fundo verde */
+        color: white; /* texto branco */
+        border: none; /* remove a borda padrão */
+        padding: 8px 12px; /* espaçamento interno para dar espaço ao texto */
+        border-radius: 16px; /* bordas arredondadas */
+        transition: 0.3s; /* animação suave para efeitos hover e focus */
+    }
+
+    #filter:focus {
+        box-shadow: 0 0 8px rgba(72, 239, 128, 0.8); /* efeito de foco */
+        outline: none; /* remove o contorno padrão quando focado */
+    }
+
+    #filter:hover {
+        background-color: #45a049; /* escurece um pouco quando o mouse passa por cima */
+    }
+
+    #filter::placeholder {  /* Para a maioria dos navegadores modernos */
+    color: white;
+    opacity: 1;  /* Firefox precisa disso para cor funcionar */
+}
+
+.myTable {
+    margin: 20px 0;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0px 0px 20px rgba(0,0,0,0.15);
+}
+
+/* Estilos relacionados à tabela dentro de .myTable */
+.myTable table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.myTable th, .myTable td {
+    padding: 12px 15px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.myTable th {
+    background-color: #43a04d;
+    color: white;
+    user-select: none;
+}
+
+.myTable tbody tr {
+    transition: background-color 0.3s ease;
+}
+
+.myTable tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.myTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.myTable tbody tr:hover {
+    background-color: #EAF9F5;
+}
+
+/* Adicione aqui os estilos para ajustar o tamanho das colunas */
+/* Coluna do checkbox */
+
+#table td:nth-child(1),
+#table th:nth-child(1) {
+    text-align: center;  /* Centralizar horizontalmente */
+    vertical-align: middle;  /* Centralizar verticalmente */
+}
+
+
+.highlighted-cell {
+    background-color: #c7c7c7; /* Cinza um pouco mais escuro que o anterior */
+}
+
+.highlighted-row {
+    background-color: #b0b0b0; /* Cinza ainda mais escuro */
+}
+
+
+.checkbox-material input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-material label {
+    color: rgba(0, 0, 0, 0.54);
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.checkbox-material input[type="checkbox"]:checked + label {
+    color: #4CAF50; /* você pode alterar a cor se quiser */
+}
+
+.checkbox-material {
+    position: relative;
+    padding-left: 35px;
+    cursor: pointer;
+    font-size: 22px;
+    user-select: none;
+}
+
+.checkbox-material input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkbox-material .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+    border-radius: 2px;
+}
+
+.checkbox-material:hover input ~ .checkmark {
+    background-color: #ccc;
+}
+
+.checkbox-material input:checked ~ .checkmark {
+    background-color: #43a04d;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.checkbox-material input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.checkbox-material .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    .myTable th, .myTable td {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+.header img {
+        width: 35px; /* Ajuste o valor de acordo com o tamanho desejado */
+        height: auto; /* Mantém a proporção da imagem */
+        border-radius: 5px; /* Borda arredondada para deixar elegante */
+        margin-right: 10px; /* Espaçamento à direita da imagem */
+    }
+
+
+    .modal-header {
+    background-color: #43a04d;
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.modal-header img {
+    width: 50px;
+    vertical-align: middle;
+    margin-right: 10px; /* adicionada margem à direita */
+}
+
+    .mdl-dialog {
+    width: 90%; /* faz o modal ocupar 90% da largura da tela */
+    max-width: 100%; /* garante que não exceda a largura da tela */
+    margin: 2% auto; /* centraliza o modal */
+}
+
+/* Estilizando o título do modal */
+.mdl-dialog__title {
+    background-color: #4CAF50; /* Cor verde padrão. Ajuste de acordo com o seu verde específico */
+    color: white; /* Cor do texto */
+    padding: 10px 24px; /* Espaçamento interno */
+    margin: 0; /* Remover margem padrão */
+}
+
+/* Estilizando o conteúdo do modal */
+.mdl-dialog__content {
+    border-top: 5px solid #4CAF50; /* Adicionar uma borda verde no topo para continuidade do design */
+    padding: 24px; /* Espaçamento interno */
+}
+
+/* Se quiser personalizar o botão também */
+.mdl-button--accent {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.mdl-button--accent:hover {
+    background-color: #45a049;
+}
+
+#control-section {
+    display: none;
+}
+
+    </style>
+</head>
+
+<body>
+
+    <!-- Ícone do menu e Menu lateral: Não alterado, mantive o seu código -->
+<!-- Conteúdo Principal -->
+<div class="header">
+    <img src="https://drive.google.com/uc?export=view&id=1-grKAm790rFePojbqFxCeNXy4rHzrV4j" alt="Logo da Empresa">
+        Novas Tarefas - <span>NothCromo</span>
+
+    </div>
+
+    <link rel="icon" href="https://drive.google.com/uc?export=view&id=SEU_ID_DA_IMAGEM" type="image/x-icon">
+
+    <!-- Início da estrutura HTML principal -->
+<div class="container my-3">
+
+    <!-- Seção de Número de Controle, Data de Recebimento e Nome do Cliente -->
+    <div class="row">
+        <!-- Número de controle -->
+        <div class="col-md-4">
+            <label for="control-number">Número de controle:</label>
+            <input id="control-number" type="text" class="form-control highlight-input" placeholder="Número de controle"
+         list="numerosDeControle" />
+        </div>
+
+
+        <!-- Data de Recebimento -->
+        <div class="col-md-4" id="control-section">
+            <label for="receipt-date">Data de Recebimento:</label>
+            <input id="receipt-date" type="date" class="form-control">
+        </div>
+
+              <div class="col-md-4" >
+          <label for="dataLancamento" class="custom-label">Data de Lançamento</label>
+          <input id="dataLancamento" type="date" class="form-control" placeholder="Data de Lançamento"/>
+      </div>
+
+        <!-- Nome do Cliente -->
+        <div class="col-md-4">
+            <label for="client-name">Nome do Cliente:</label>
+            <input id="client-name" type="text" class="form-control">
+        </div>
+    </div>
+
+        <!-- Seção de Quantidade, Código do Produto, Descrição do Produto e Operação -->
+        <div class="row">
+            <div class="col-md-3">
+                <label for="quantity">Quantidade:</label>
+                <input id="quantity" type="number" class="form-control">
+            </div>
+            <div class="col-md-3">
+               <!-- Campo de entrada para o código do produto -->
+                <label for="searchbar">Código do produto:</label>
+                <div class="input-group">
+
+                  <!-- Campo de entrada para o código do produto -->
+                  <input id="searchbar" type="text" class="form-control" placeholder="Digite o código Produto ou serviço" oninput="onProductCodeInput()">
+                    <div class="input-group-append">
+                        <button onclick="fetchProductsAndOpenForm()" class="btn btn-outline-secondary"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="product-description">Desc Serviço/ Produto / Tarefa:</label>
+                <textarea id="product-description" class="form-control"></textarea>
+            </div>
+            <div class="col-md-3">
+                <label for="operation">Operação:</label>
+                <input id="operation" type="text" class="form-control">
+            </div>
+        </div>
+
+        <!-- Seção de Observações -->
+        <div class="form-group">
+            <label for="notes">Observação:</label>
+            <textarea id="notes" class="form-control"></textarea>
+        </div>
+
+     <!-- teste - Seção de Lista de Produtos (está escondida inicialmente) -->
+      <div id="form" class="form-group" style="display: none">
+          <label for="filter">Filtrar Produtos ou Serviço:</label>
+          <input id="filter" type="text" class="form-control" oninput="filterProducts(this.value)" placeholder="Digite o código ou nome > Depois para Lista Selecionar o Produto ou Serviço">
+
+          <label for="product-list" style="margin-top: 10px;">Lista de Produtos ou Serviço:</label>
+          <select id="product-list" onchange="selectProduct()" class="form-control"></select>
+      </div>
+
+
+       <!-- Ocultar os inpunt somente para paremntros -->
+        <input type="text" id="inputIDORDEM" placeholder="IDORDEM" style="display: none;">
+        <input type="text" id="inputIDPRODUTO" placeholder="IDPRODUTO" style="display: none;">
+
+        <input type="text" id="input1" style="display: none;">
+        <input type="text" id="input2" style="display: none;">
+        <input type="text" id="input3" style="display: none;">
+
+        <!-- Seção para mostrar o valor da operação (está escondida inicialmente) -->
+        <div id="result" class="form-group" style="display: none;">
+            <label for="result-value">Op:</label>
+        </div>
+
+        <!-- Botões de Salvar e Adicionar -->
+            <div class="row">
+        <div class="col-md-6">
+            <button id="addRow" onclick="addRow()" class="btn btn-success">Adicionar</button>
+        </div>
+        <div class="col-md-6 text-right">
+            <button onclick="confirmClose()" class="btn btn-danger">Salvar</button>
+        </div>
+    </div>
+
+
+        <!-- Modal de Confirmação -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Confirmação</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Você tem certeza que quer fechar a página?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="google.script.run.confirmClose()">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela para exibir itens adicionados -->
+        <div class="table-responsive myTable">
+            <table id="table" class="table">
+                <thead>
+                    <tr>
+                         <!-- <th class="text-center">Nº Linha</th> -->
+                        <th class="text-center">Data</th>
+                        <th class="text-center">Nº Controle</th>
+                        <th class="text-center">Cliente</th>
+                        <th class="text-center">Qtd</th>
+                        <th class="text-center">Cód</th>
+                        <th class="text-center">Desc Serviço/ Produto / Tarefa    </th>
+                        <th class="text-center">Op</th>
+                        <th class="text-center">Observação </th>
+                        <th class="text-center">
+                            <label class="checkbox-material">
+                                <input type="checkbox" id="selectAllCheckbox">
+                                <span class="checkmark"></span>
+                            </label>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+
+<select id="dateFilterDropdown">
+    <!-- As opções serão preenchidas pelo JavaScript -->
+</select>
+      <!--Lista supresa no campo  -->
+    <datalist id="numerosDeControle">
+          <!-- As opções serão adicionadas aqui pelo JavaScript -->
+    </datalist>
+
+
+        <!-- Tabela para exibir itens adicionados-->
+         <button id="deleteRowsBtn" onclick="deleteSelectedRows()" class="btn btn-danger">Excluir Itens selecionadas</button>
+
+        <script>
+
+// ----------------------- VARIAVEIS   -----------------------
+
+  // REMOVE ESPAÇO E ASPA
+//var numeroControleNovo = document.getElementById('numeroControle').value.trim().replace(/"/g, '');
+var minhaUrl =
+     'https://script.google.com/macros/s/AKfycbyY9iJkLVWKpuEhpjg7lS50-WOE6gi2Rj7EkcBeyg3awfpPeoy9H91DdkSdO3qtLwYQnw/exec'
+
+var globalIdOrdem = null
+window.onbeforeunload = function() {
+    globalIdOrdem = null;
+};
+
+// ARMANEZAR OS DADOS
+var allProducts = [];
+
+// VARIAVEL DATA DE HOJE
+const currentDate = getCurrentDateFormatted();
+
+
+// ----------------------- ABRIR E FECHAR MENU   -----------------------
+
+function openNav() {
+    document.getElementById("mySidenav").style.width = "250px";
+}
+
+function closeNav() {
+    document.getElementById("mySidenav").style.width = "0";
+}
+
+// ----------------------- MANIPULADO DE SUCESSO  -----------------------
+
+function handleReturnedData(data) {
+    if(data) {
+        // Preenche os inputs com os dados retornados
+        document.getElementById("inputControlNumber").value = data.controlNumber;
+        document.getElementById("inputReceiptDate").value = data.receiptDate;
+    } else {
+        console.error("Nenhum dado foi retornado do servidora.");
+    }
+}
+
+// ----------------------- CONVERSÃO DE DATA -----------------------
+
+function convertDate(dateStr, format = 'toAmerican') {
+    const separators = {
+        toAmerican: '-',
+        toBrazilian: '/'
+    };
+    let [day, month, year] = dateStr.includes("-") ? dateStr.split("-") : dateStr.split("/");
+
+    if (format === 'toAmerican') return `${year}-${month}-${day}`;
+    return `${day}/${month}/${year}`;
+}
+
+function formatDateToBR(dateString) {
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR', options).format(date);
+}
+
+function formatDateToBR2(date) {
+    if (typeof date === 'string') {
+        return date; // se já é uma string no formato dd/MM/yyyy, retorne a mesma
+    }
+
+   }
+
+// DATA ATUAL DE HOJE
+function getCurrentDateFormatted() {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+    const year = today.getFullYear();
+
+    return day + '/' + month + '/' + year;
+}
+
+// ----------------------- ERRO -----------------------
+
+          function errorFunction(error) {
+        console.error("Houve um erro ao buscar os dados:", error);
+        //alert("Houve um problema ao buscar os dados. Por favor, tente novamente.");
+    }
+
+    // ----------------------- ATUALIZAÇÃO UI -----------------------
+
+
+    // Supondo que você tenha um botão ou algum gatilho para fazer a troca
+$("#toggleButton").click(function() {
+    $("#control-section").toggle(); // Mostra se estiver oculto, oculta se estiver visível
+    $("#date-section").toggle();
+});
+
+
+// Data de Hoje para os inpunt
+      function setDataLancamento() {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, "0");
+        var mm = String(today.getMonth() + 1).padStart(2, "0"); // Janeiro é 0!
+        var yyyy = today.getFullYear();
+
+        today = yyyy + "-" + mm + "-" + dd;
+        document.getElementById("dataLancamento").value = today;
+      }
+
+
+
+      function processarDadosConferencia(dados) {
+    // Aqui, você pode processar os dados conforme necessário. Por exemplo:
+    dados.forEach(function(item) {
+        // Fazer algo com cada item, como adicionar a um elemento da página, etc.
+        console.log("Processando item:", item);
+
+        // Se você quiser adicionar ao datalist "numerosDeControle":
+        var option = document.createElement('option');
+        option.value = item;
+        document.getElementById('numerosDeControle').appendChild(option);
+    });
+}
+
+
+// ---------- Funções relacionadas a AJAX e manipulação de respostas ----------
+
+function fetchAndPopulateControlNumbers() {
+    try {
+        console.log("Buscando números de controle...");
+        $.ajax({
+            type: 'POST',
+            data: {
+                qualFuncao: 'numerocontroleUnicos'
+            },
+            url: minhaUrl, // Garanta que "minhaUrl" está definida em algum lugar no seu código
+            success: function(response) {
+                console.log("Resposta recebida para números de controle:", response);
+                populateControlNumbers(response);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Erro ao buscar números únicos de controle:", errorThrown);
+            }
+        });
+    } catch (error) {
+        console.error("Erro inesperado em fetchAndPopulateControlNumbers:", error);
+    }
+}
+
+
+// REALIZAR O FILTRO COM AJAX
+function populainpuntControlNumbers(){
+  var dateFilterDropdown = document.getElementById("dateFilterDropdown").value;
+  $.ajax({
+    type: 'POST',
+    data: {
+      qualFuncao: 'numerocontroleUnicos',
+      filtro: dateFilterDropdown,
+
+    },
+    url: minhaUrl,
+  }).done(function (data) {
+    // RESULTADO FRONT
+    try {
+    var data = JSON.parse(data);
+} catch (error) {
+    console.error("Erro ao analisar JSON:", error);
+}
+
+  });
+};
+
+/**
+ * Popula os números de controle em um datalist.
+ */
+ function populateControlNumbers(data) {
+
+// Tentativa de analisar como JSON se os dados são uma string
+if (typeof data === 'string') {
+    try {
+        data = JSON.parse(data);
+    } catch (e) {
+        console.error("Erro ao analisar os dados:", e);
+        return;
+    }
+}
+
+// Verifique se os dados são uma instância de um Array
+if (!Array.isArray(data)) {
+    console.error("Dados recebidos na função populateControlNumbers não são uma instância de Array:", data);
+    return;
+}
+
+console.log("Populando datalist com números de controle...");
+var datalist = document.getElementById('numerosDeControle');
+datalist.innerHTML = ''; // Limpa qualquer opção anterior
+
+// Agora, usando a variável 'data' em vez de 'numbers'
+data.forEach(function(num) {
+    var option = document.createElement('option');
+    option.value = num;
+    datalist.appendChild(option);
+});
+}
+
+
+// TESTE - CARREGAR OS INPUNT DA PAGINA INICIAL
+function updateInputs(data) {
+    try {
+        console.log("TONY:", data);
+
+        // Função auxiliar para simplificar a definição de valores
+        function safeSetValue(elementId, value) {
+            let element = document.getElementById(elementId);
+            if (element && value !== undefined) {
+                element.value = value;
+            } else {
+                console.warn(`Elemento '${elementId}' ou valor não encontrado.`);
+            }
+        }
+
+        safeSetValue("input1", data.id);
+        safeSetValue("input2", data.idordem);
+        safeSetValue("input3", data.idcliente);
+        safeSetValue("control-number", data.controlNumber);
+        safeSetValue("receipt-date", data.receiptDate);
+        safeSetValue("client-name", data.clienteName);
+        safeSetValue("quantity", 1);
+        safeSetValue("inputIDORDEM", data.idORDEM);
+        safeSetValue("inputIDPRODUTO", data.idPRODUTO);
+
+        globalIdOrdem = data.idORDEM;
+
+        // Chamar a função do lado do servidor usando AJAX
+        $.ajax({
+            type: 'POST',
+            data: {
+                qualFuncao: 'fetchControlNumberAndDate',
+                globalIdOrdem: globalIdOrdem
+            },
+            url: minhaUrl,
+            success: function (functionReturnedData) {
+                console.log("Dados retornados do servidor:", functionReturnedData);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("Erro na chamada AJAX:", textStatus, errorThrown);
+            }
+        });
+    } catch (error) {
+        console.error("Erro ao atualizar a interface do usuário:", error);
+    }
+}
+
+
+// TESTE
+function fetchData() {
+    google.script.run.withSuccessHandler(updateInputs).fetchFromSheet();
+}
+
+
+function getDetailsForIdOrdem() {
+    // Recupera o valor do elemento 'inputIDORDEM' e converte para número
+    var idOrdem = Number(document.getElementById('inputIDORDEM').value);
+
+    try {
+        $.ajax({
+            type: 'POST',
+            data: {
+                qualFuncao: 'fetchControlNumberAndDate',
+                idOrdem: idOrdem // Passa o idOrdem como parâmetro
+            },
+            url: minhaUrl,
+            success: function (data) {
+                console.log("Dados brutos recebidos do servidor:", data);
+                try {
+                    // Analisar os dados recebidos, se necessário
+                    var result = JSON.parse(data);
+
+                    if (result) {
+                        document.getElementById("control-number").value = result.controlNumber;
+                        document.getElementById("receipt-date").value = convertDate(result.dateRecebimento, 'toAmerican');
+                    } else {
+                        console.error("Não foram encontrados detalhes para o IDORDEM:", idOrdem);
+                    }
+                } catch (e) {
+                    console.error("Erro ao analisar os dados JSON:", e.message);
+                    // Lidar com o erro de análise JSON
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("Erro na chamada AJAX:", textStatus, errorThrown);
+                // Lidar com erros de solicitação AJAX
+            }
+        });
+    } catch (error) {
+        console.error("Erro ao executar a chamada AJAX:", error);
+        // Lidar com erros ao executar a chamada AJAX
+    }
+}
+
+
+// ----------------------- PESQUISA -----------------------
+
+function onProductSelected() {
+    var productCode = document.getElementById("product-list").value;
+    document.getElementById("product-search").value = productCode;  // Atualiza o campo de pesquisa com o código do produto selecionado
+    console.log("fillProductList chamado com:", productCode);
+    onProductCodeInput();  // Chama a função
+}
+
+
+        //  TESTE - FILTRAR O PRODUTO CONFORME DIGITADO
+          function filterProducts(inputValue) {
+          var filteredProducts = allProducts.filter(function(product) {
+              // Verificando e convertendo para string
+              var codigoStr = String(product.codigo || "");
+              var nomeStr = String(product.nome || "");
+
+              return nomeStr.toLowerCase().includes(inputValue.toLowerCase()) ||
+                    codigoStr.toLowerCase().includes(inputValue.toLowerCase());
+          });
+
+          fillProductList(filteredProducts);  // Atualiza a lista de produtos
+      }
+
+             // FILTRAR O PRODUTO CONFORME DIGITADO
+            function fillProductList(products) {
+                var select = document.getElementById("product-list");
+                select.innerHTML = "";
+                for (var i = 0; i < products.length; i++) {
+                    var option = document.createElement("option");
+                    option.value = products[i].codigo;
+                    option.text = products[i].codigo + " - " + products[i].nome;
+                    select.appendChild(option);
+                }
+                document.getElementById("form").style.display = "block";
+            }
+
+function onProductCodeInput() {
+  var productCode = document.getElementById("searchbar").value;
+
+  // Log the productCode being sent
+  console.log("Sending productCode to GAS:", productCode);
+
+  fetchDataFromGAS('fetchAllProductDetails', productCode, function(data) {
+    document.getElementById("product-description").value = data.description;
+    document.getElementById("operation").value = data.operation;
+    window.operationId = data.operationId;
+    showOperationValue(data.operationValue);
+  });
+}
+
+
+function selectProduct() {
+  var selectedValue = document.getElementById("product-list").value;
+  document.getElementById("searchbar").value = selectedValue;
+  document.getElementById("form").style.display = "none";
+
+  fetchDataFromGAS('fetchAllProductDetails', selectedValue, function(data) {
+    document.getElementById("product-description").value = data.description;
+    document.getElementById("operation").value = data.operation;
+    window.operationId = data.operationId;
+    showOperationValue(data.operationValue);
+  });
+}
+
+function showOperationValue(value) {
+    const resultValueElement = document.getElementById("result-value");
+    const resultElement = document.getElementById("result");
+
+    if (resultValueElement) {
+        resultValueElement.textContent = value;
+    } else {
+        console.error("Elemento com ID 'result-value' não encontrado!");
+    }
+
+    if (resultElement) {
+        resultElement.style.display = "none";
+    } else {
+        console.error("Elemento com ID 'result' não encontrado!");
+    }
+}
+
+
+function fetchDataFromGAS(productCode, successCallback) {
+    $.ajax({
+        method: 'POST',
+        data: {
+            qualFuncao: "fetchAllProductDetails",
+            productCode: Number(productCode)
+        },
+        url: minhaUrl,
+        success: function(response) {
+            try {
+                var data = JSON.parse(response);
+                console.log("Received data from GAS:", data);  // log dos dados recebidos
+                successCallback(data);
+            } catch (error) {
+                console.error("Erro ao processar a resposta:", error);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Erro ao buscar dados:", error);
+        }
+    });
+}
+
+// ----------------------- ADICIONAR LINHAS -----------------------
+
+function fetchDescriptionFromRecebimentoByIdOrdem(idOrdem, callback) {
+    google.script.run
+        .withSuccessHandler(callback)
+        .getDescriptionFromRecebimento(idOrdem);
+}
+
+function fetchDescriptionFromClienteByIdOrdem(clienteId, callback) {
+    google.script.run
+        .withSuccessHandler(callback)
+        .getDescriptionFromCliente(clienteId);
+}
+
+function getIDescricaoProdutoByIdOrdem(productCode, callback) {
+    google.script.run
+        .withSuccessHandler(callback)
+        .getIDescricaoProduto(productCode);
+}
+
+function fetchIdOperacaoproductCodeByIdOrdem(productCode, callback) {
+    google.script.run
+        .withSuccessHandler(callback)
+        .fetchOperationValues(productCode);  // Alterado para corresponder ao nome da função do servidor (ajuste conforme necessário)
+}
+
+  // MELHORIAS
+  function addRow() {
+    console.log("addRow");
+
+    // Coleta dos valores do DOM
+    const controleDescricao = $("#input2").val();
+    const dataRecebimento = $("#receipt-date").val();
+    const dataLancamento = $("#dataLancamento").val();
+    const clienteId = $("#input3").val();
+    const quantity = $("#quantity").val();
+    const productCode = $("#searchbar").val();
+    let notes = $("#notes").val().trim();
+    if (!notes) notes = "-";
+    const id = $("#input1").val();
+
+    $.ajax({
+        type: 'POST',
+        data: {
+            qualFuncao: 'checkIfExists',
+            productCode: productCode,
+            globalIdOrdem: globalIdOrdem
+        },
+        url: minhaUrl,
+        success: function(response) {
+            try {
+                if (response.exists) {
+                    alert("Esse serviço já está associado a essa ordem.");
+                } else {
+                    saveToNovasTarefas(controleDescricao, dataLancamento, clienteId, quantity, productCode, notes, dataRecebimento);
+                }
+            } catch (error) {
+                console.error("Erro ao analisar resposta:", error);
+            }
+        },
+        error: function(error) {
+            console.error("Erro ao verificar existência:", error);
+        }
+    });
+}
+
+
+// SALVA NA TABELA
+function saveToNovasTarefas(controleDescricao, currentDate, clienteId, quantity, productCode, notes, dataRecebimento) {
+
+    console.log("Iniciando saveToNovasTarefas...");
+
+      // Log dos valores recebidos
+    console.log("Valores recebidos:", {
+        controleDescricao,
+        currentDate,
+        clienteId,
+        quantity,
+        productCode,
+        notes,
+        dataRecebimento
+    });
+
+    // Formatando a data dataRecebimento antes de passá-la para a função
+    const formattedDataRecebimento = formatDateToBR(dataRecebimento);
+
+    google.script.run
+        .withSuccessHandler(function(newRow) {
+            fetchDescriptionFromRecebimentoByIdOrdem(newRow[1], function(descriptionFromRecebimento) {
+
+                newRow[1] = descriptionFromRecebimento;
+
+                // Busca a descrição do cliente
+                google.script.run
+                    .withSuccessHandler(function(descriptionFromCliente) {
+
+                        // Busca Operação do serviço
+                        google.script.run
+                            .withSuccessHandler(function(fetchOperationValues) {
+
+                                // Busca Descrição do produto
+                                google.script.run
+                                    .withSuccessHandler(function(getIDescricaoProduto) {
+
+  // INFORMAÇÃO PARA COLUNA DA TABELA
+                                        const finalRow = [
+                                            newRow[0],                             // Nº Linha (oculto para o usuário)
+                                            formatDateToBR(currentDate),           // Data Recebimento
+                                            descriptionFromRecebimento,            // Nº de Controle
+                                            descriptionFromCliente || "",          // Nome Cliente
+                                            quantity,                              // Quantidade
+                                            productCode,                           // Cód Serviço.
+                                            getIDescricaoProduto,                  // Desc Serviço/ Produto / Tarefa
+                                            fetchOperationValues,                  // Op
+                                            notes                                  // Observação
+];
+
+
+                                        console.log("finalRow após todas as atualizações:", finalRow);
+                                        addRowToTable(...finalRow);
+                                    })
+                                    .withFailureHandler(function(err) {
+                                        console.error("Erro ao buscar descrição do produto:", err);
+                                    })
+                                    .getIDescricaoProduto(productCode);
+                            })
+                            .withFailureHandler(function(err) {
+                                console.error("Erro ao buscar operação:", err);
+                            })
+                            .fetchOperationValues(productCode);
+                    })
+                    .withFailureHandler(function(err) {
+                        console.error("Erro ao buscar descrição do cliente:", err);
+                    })
+                    .getDescriptionFromCliente(clienteId);
+            });
+        })
+        .withFailureHandler(errorFunction)
+    // Passando a data formatada para a função
+    .saveToSheetNovasTarefas(globalIdOrdem, controleDescricao, currentDate, clienteId, quantity, productCode, notes, formattedDataRecebimento);
+}
+
+// ADICIONAR DADOS NA TABELA
+function addRowToTable(newId, formattedDate, descriptionFromRecebimento, descriptionFromCliente, quantity, productCode, productDescription, operation, notes) {
+
+    console.log("addRowToTable");
+    console.log("Valores recebidos em addRowToTable:", arguments);
+
+    var table = document.getElementById("table");
+    var row = table.insertRow(-1);
+
+    // Os valores para as outras colunas
+    const values = [newId, currentDate, descriptionFromRecebimento, descriptionFromCliente, quantity, productCode, productDescription, operation, notes];
+
+    values.forEach(function(value, index) {
+        var cell = row.insertCell(-1);
+        cell.innerHTML = value || "";
+        cell.classList.add("text-center", "align-middle");
+
+        // Se é uma das células editáveis (índices 4, 6, 7 ou 8)
+        if ([4, 6, 7, 8].includes(index)) {
+            cell.classList.add("highlighted-cell");
+
+            // Adiciona o evento de clique para permitir edição
+            cell.addEventListener('click', function() {
+                if(cell.querySelector('input')) return; // Verifica se já é um input
+                convertCellToInput(cell);
+            });
+        }
+
+         // Se é a primeira célula (Nº Linha - que contém o ID), oculte-a
+        if (index === 0) {
+            cell.style.display = "none";
+        }
+    });
+
+    // Agora, adicione a célula do checkbox (depois de todas as outras células)
+    const checkboxCell = row.insertCell(-1);
+    checkboxCell.innerHTML = `
+    <div class="checkbox-material">
+        <input type="checkbox" id="checkbox-${newId}" class="row-checkbox">
+        <label for="checkbox-${newId}" class="material-icons">check_box_outline_blank</label>
+    </div>`;
+
+    checkboxCell.querySelector('input').addEventListener('change', function() {
+        const labelElement = this.nextElementSibling;
+        if (this.checked) {
+            labelElement.textContent = 'check_box';
+        } else {
+            labelElement.textContent = 'check_box_outline_blank';
+        }
+    });
+
+    // Reset dos valores dos campos após adicionar a linha
+    document.getElementById("quantity").value = 1;
+    document.getElementById("searchbar").value = '';
+    document.getElementById("product-description").value = '';
+    document.getElementById("notes").value = '';
+    document.getElementById("operation").value = '';
+}
+
+
+// Função para buscar dados por número de controle
+function fetchDadosPorNumeroControle(input2) {
+
+   console.log("teste ordem:");
+    // Use AJAX para buscar os dados no GAS
+    $.ajax({
+        type: 'POST',
+        data: {
+            qualFuncao: 'buscarDadosPorNumeroControle',
+            numeroControle: input2
+        },
+        url: minhaUrl,
+        success: function (data) {
+            try {
+                var rowData = JSON.parse(data);
+                console.log("Dados retornados:", rowData);
+
+                // Verifique se há dados a serem exibidos
+                if (rowData.length === 0) {
+                    console.log("Nenhum dado encontrado para o número de controle:", numeroControle);
+                    return;
+                }
+
+                // Agora você pode adicionar os dados à tabela usando a função addRowToTable
+                for (var i = 0; i < rowData.length; i++) {
+                    var data = rowData[i];
+                    var newId = data[0];
+                    var formattedDate = data[1];
+                    var descriptionFromRecebimento = data[2];
+                    var descriptionFromCliente = data[3];
+                    var quantity = data[4];
+                    var productCode = data[5];
+                    var productDescription = data[6];
+                    var operation = data[7];
+                    var notes = data[8];
+
+                    addRowToTable(newId, formattedDate, descriptionFromRecebimento, descriptionFromCliente, quantity, productCode, productDescription, operation, notes);
+                }
+            } catch (e) {
+                console.error("Erro ao analisar os dados:", e);
+            }
+        },
+        error: function (error) {
+            console.error("Erro ao buscar dados do servidor:", error);
+        }
+    });
+}
+
+// ----------------------- EDITAR AS INFORMAÇÕES DIRETO NA TABELA E REALIZANDO UMA COR DESTAQUE  -----------------------
+
+function convertCellToInput(cell) {
+    const originalValue = cell.textContent;
+
+    // Destaque a célula e a linha
+    cell.classList.add('highlighted-cell');
+    cell.parentElement.classList.add('highlighted-row');
+
+    cell.innerHTML = `<input type="text" value="${originalValue}" />`;
+    const input = cell.querySelector('input');
+    input.focus();
+
+    input.addEventListener('keydown', function(event) {
+        if (event.key === "Enter") {
+            saveCellValue(cell, input.value);
+        }
+    });
+
+    // Verifique se um botão "Salvar" já existe na linha antes de adicioná-lo
+    const existingSaveButton = cell.parentElement.querySelector('button');
+    if (!existingSaveButton) {
+        // Adiciona um botão "Salvar" à linha
+        // const saveButtonCell = cell.parentElement.insertCell(-1);
+         //saveButtonCell.innerHTML = '<button onclick="saveTableRowChanges(this)">Salvar</button>';
+    }
+}
+
+function saveCellValue(cell, value) {
+   if (!value.trim()) {  // Verifica se o valor é vazio ou apenas espaços em branco
+        value = cell.originalValue;  // Use o valor original se o novo valor for vazio
+    }
+    cell.innerHTML = value;
+
+    // Remova o destaque da célula e da linha
+    cell.classList.remove('highlighted-cell');
+    cell.parentElement.classList.remove('highlighted-row');
+
+    // Re-ativar o event listener para edição
+    cell.addEventListener('click', function() {
+        convertCellToInput(cell);
+    });
+}
+
+function saveTableRowChanges(buttonElement) {
+    const row = buttonElement.parentElement.parentElement;
+    const cells = row.cells;
+
+    for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        const inputElement = cell.querySelector('input');
+
+        if (inputElement) {
+            saveCellValue(cell, inputElement.value);
+        }
+    }
+
+    // Remove o botão "Salvar" da linha
+    row.deleteCell(-1); // Isso assume que o botão "Salvar" é sempre o último na linha.
+}
+// ----------------------- EXCLUSÃO DE LINHA NA TABELA  -----------------------
+function deleteSelectedRows() {
+    const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+    const table = document.getElementById('table');
+
+    checkboxes.forEach(checkbox => {
+        let row = checkbox.closest('tr');
+        let idCell = row.cells[1]; // Supondo que o ID da linha esteja na segunda coluna (índice 1)
+        let id = idCell.textContent;
+
+        // Chamada para a função que exclui a linha da folha "NovasTarefas"
+        google.script.run
+            .withSuccessHandler(() => {
+                // Após a confirmação da exclusão no servidor, exclua a linha da tabela no lado do cliente
+                table.deleteRow(row.rowIndex);
+            })
+            .deleteRowFromNovasTarefas(id);
+    });
+}
+
+
+// CHECKBOX
+document.getElementById("selectAllCheckbox").addEventListener('change', function() {
+    var checkboxes = document.querySelectorAll('.row-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = this.checked; // Isso irá marcar ou desmarcar todos os checkboxes dependendo do estado de selectAllCheckbox
+        const labelElement = checkboxes[i].nextElementSibling;
+        if (checkboxes[i].checked) {
+            labelElement.textContent = 'check_box';
+        } else {
+            labelElement.textContent = 'check_box_outline_blank';
+        }
+    }
+});
+
+
+     document.getElementById("deleteRowsBtn").addEventListener('click', function() {
+    var checkboxes = document.querySelectorAll('.row-checkbox:checked'); // Seleciona apenas os checkboxes que estão marcados
+    var idsToDelete = [];
+
+    checkboxes.forEach(function(checkbox) {
+        var row = checkbox.closest('tr'); // Encontra a linha do checkbox
+        idsToDelete.push(row.cells[1].textContent); // Adiciona o ID da linha à lista de IDs a serem excluídos
+        table.deleteRow(row.rowIndex); // Exclui a linha da tabela
+    });
+
+    // Agora, excluímos as linhas correspondentes na planilha usando Google Apps Script
+    google.script.run.deleteRowsInSheet(idsToDelete);
+});
+
+
+// ----------------------- FINAL TABELA  -----------------------
+
+// TRANSFORMAR A ID ORDEM VISÃO USUARIO
+function updateTableWithRecebimentoInfo(valueFromColB) {
+  console.log("updateTableWithRecebimentoInfo");
+    google.script.run
+        .withSuccessHandler(function (resultFromColC) {
+            // Aqui, resultFromColC é o valor da coluna C da folha "Recebimento".
+            // Agora você pode usá-lo para atualizar sua tabela.
+            // Vou supor que você queira atualizar uma célula específica na tabela. Ajuste conforme necessário.
+            var cellToUpdate = document.getElementById("idOfCellToUpdate");
+            cellToUpdate.innerHTML = resultFromColC;
+        })
+        .fetchValueFromRecebimentoByColA(valueFromColB);
+}
+
+
+// TRANSFORMAR A ID ORDEM VISÃO USUARIO
+function fetchIdOperacao(productCode) {
+  console.log("fetchIdOperacaoproductCode");
+  console.log("Valor de valueFromColA:", productCode);
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      // result é o valor da coluna B da folha "Operacao" baseado no valor da coluna A
+      console.log("Resultado retornado pelo servidor:", result);
+      globalIdOperacao = result;
+    })
+    .fetchOperationValues(vproductCode);
+}
+
+
+
+// TRANSFORMAR A ID CLIENTE VISÃO USUARIO
+function fetchClienteId(valueFromColB) {
+  console.log("fetchClienteId");
+    google.script.run
+        .withSuccessHandler(function (result) {
+            // result é o valor da coluna B da folha "Cliente" baseado no valor da coluna A
+            globalClienteId = result;
+        })
+        .getClienteId(valueFromColB);
+}
+
+
+// MELHORIAS FAZER UMA PESQUISA CÓDIGO TRAZER A DESCRIÇÃO
+
+function fetchProductCode(productCode) {
+   console.log("fetchProductCode");
+    google.script.run.withSuccessHandler(function (productDescription) {
+        document.getElementById("product-description").value = productDescription;
+    }).getProductDescription(productCode);
+}
+
+            /* Funções para carregar dados iniciais e exibi-los na interface do usuário */
+            function displayInitialData(data) {
+              console.log("displayInitialData");
+            if (!data || data.length < 3) {
+                console.error("Dados recebidos são inválidos ou incompletos:", data);
+                alert("Houve um problema ao carregar os dados. Por favor, tente novamente.");
+                return;
+            }
+            var dataToStore = {
+                idOrdem: data[0],
+                clientName: data[1],
+                receiptDate: data[2]
+            };
+            localStorage.setItem('storedData', JSON.stringify(dataToStore));
+        }
+
+            function loadInitialData() {
+               console.log("loadInitialData");
+                google.script.run.withSuccessHandler(displayInitialData).withFailureHandler(errorFunction).getInitialData();
+            }
+
+            /* Função para preencher detalhes com base no número de controle */
+            function fillDetails() {
+              console.log("fillDetails");
+                var controlNumber = document.getElementById("control-number").value;
+                google.script.run.withSuccessHandler(showDetails).getDetails(controlNumber);
+            }
+
+            function showDetails(details) {
+              console.log("showDetails");
+                document.getElementById("receipt-date").value = toYYYYMMDD(new Date(details.receiptDate).toLocaleDateString('pt-BR'));
+                document.getElementById("client-name").value = details.clientName;
+            }
+
+            /* Função para buscar produtos e preencher a lista */
+           function fetchProductsAndOpenForm() {
+          console.log("fetchProductsAndOpenForm chamado");
+          google.script.run
+              .withSuccessHandler(function(products) {
+                  allProducts = products;  // Guarda todos os produtos na variável global
+                  fillProductList(products);  // Preenche a lista suspensa
+                  document.getElementById("form").style.display = "block"; // Mostra o formulário
+              })
+              .withFailureHandler(function(err) {
+                  console.error(err);
+              })
+              .fetchProducts();
+      }
+
+// ----------------------- REFERENTE MODAL E FECHAMENTO -----------------------
+
+            /* Função para exibir o modal de confirmação */
+            function saveAndClose() {
+                $('#myModal').modal('show');
+            }
+
+           /* Função para confirmar o fechamento */
+      function confirmClose() {
+          if (window.confirm("Deseja salvar as alterações?")) {
+              const table = document.getElementById("table");
+              const rows = table.getElementsByTagName("tr");
+
+              // VERIFICAR E ATUALIZAR AS INFORMAÇÕES QUE TIVERAM ALTERAÇÕES NA TABELA
+              for (let i = 1; i < rows.length; i++) { // Começamos do 1 para pular o cabeçalho da tabela
+                  const cells = rows[i].getElementsByTagName("td");
+                  const id = Number(cells[0].innerText); // Converta para número
+                  const quantity = Number(cells[4].innerText); // Converta para número
+
+                  // Atualize a planilha com o novo valor de quantidade
+                 google.script.run.updateSheetNovasTarefas(id, quantity);
+              }
+          }
+          // Primeiro, chamamos a função do lado do servidor para limpar e salvar a planilha
+          google.script.run.withSuccessHandler(onRowsCleared).clearRowsFromSecond();
+      }
+
+function onRowsCleared() {
+    var msgDiv = document.createElement("div");
+    msgDiv.id = "message";
+    msgDiv.innerHTML = "<p><strong>Todas as operações foram concluídas. Você pode fechar a janela agora, Depois voltar para o Aplicativo Sicronizar o aplicativo.</strong></p>";
+    msgDiv.style.color = "red";
+    msgDiv.style.fontSize = "20px";
+    msgDiv.style.textAlign = "center";
+    msgDiv.style.marginTop = "20px";
+
+    document.body.insertBefore(msgDiv, document.body.firstChild);
+    //alert("Todas as operações foram concluídas");
+}
+
+
+
+// Função para carregar a tabela automaticamente
+function loadTable() {
+
+    // Obtenha o valor do número de controle
+    var numeroControle = document.getElementById("input2").value;
+
+    // Verifique se o número de controle não está vazio
+    if (input2) {
+
+    }
+}
+
+// ----------------------- EVENTOS DE INICIALIZAÇÃO -----------------------
+
+function deleteRowsInMain2() {
+  console.log("deleteAllRowsInMain2");
+  try {
+    $.ajax({
+      type: 'POST',
+      data: {
+        qualFuncao: 'clearDataExceptHeader'
+      },
+      url: minhaUrl,
+      success: function (data) {
+        console.log("Resposta do servidor:", data);
+        if (data.success) {
+          alert(data.message); // Exibe um alerta de sucesso
+        } else {
+          alert("Erro ao realizar a atualização.");
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.error("Erro na chamada AJAX:", textStatus, errorThrown);
+        alert("Erro na chamada AJAX.");
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao chamar a função deleteAllRowsInMain2:", error);
+    alert("Erro ao chamar a função.");
+  }
+}
+
+
+// Quando o usuário fecha o site ou navega para outra página, você pode zerar a variável
+window.onbeforeunload = function() {
+    globalIdOrdem = null;
+};
+
+
+
+// Unindo todos os eventos em um único $(document).ready(function () { ... });
+$(document).ready(function () {
+    // Quando o DOM estiver carregado, chamamos onPageLoad está é função principal
+    window.addEventListener('DOMContentLoaded', onPageLoad);
+
+ // Vamos carregar os dados assim que a página for carregada
+    fetchData();
+    //fetchUlimaLinhaApiScript();
+});
+
+
+// Função para inicializar tudo quando o DOM estiver carregado
+function onPageLoad() {
+
+    // Ativação do input para buscar produtos e preencher a lista ao digitar
+    document.getElementById("searchbar").addEventListener('input', onProductCodeInput);
+
+    // Carrega os dados iniciais do cliente, como nome e data de recebimento
+    loadInitialData();
+
+    // Carrega a tabela automaticamente após a inicialização da página
+    loadTable();
+
+    // Iniciar o processo AJAX para buscar dados iniciais de "main2" e atualizar a interface do usuário
+    //fetchUlimaLinhaApiScript();
+
+// Atualizar dataLançamento
+    setDataLancamento();
+
+ // Atualizar numero controle
+  //fetchAndPopulateControlNumbers();
+   // populainpuntControlNumbers();
+}
+
+// Função para buscar dados iniciais de "main2" usando AJAX
+function fetchUlimaLinhaApiScript() {
+    $.ajax({
+        type: 'POST',
+        data: {
+            qualFuncao: 'UlimaLinhaApiScript'
+        },
+        url: minhaUrl,
+        success: function (data) {
+           console.log("Dados brutos recebidos do servidor:", data);
+            try {
+                // Analisar os dados recebidos, se necessário
+                var parsedData = JSON.parse(data);
+                console.log(data);
+
+            // Chame sua função personalizada para lidar com os dados JSON aqui
+            handleParsedData(parsedData);
+
+
+            } catch (e) {
+                console.error("Erro ao analisar os dados JSON:", e.message);
+                // Lidar com o erro de análise JSON
+            }
+
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+        console.error("Erro na chamada AJAX:", textStatus, errorThrown);
+        // Lidar com erros de solicitação AJAX
+    }
+    });
+}
+
+// Quando o DOM estiver carregado, chamamos onPageLoad, que inicia o processo AJAX
+$(document).ready(function () {
+    onPageLoad();
+});
+
+
+// Função para lidar com os dados JSON analisados
+function handleParsedData(parsedData) {
+    try {
+        // Aqui você pode fazer o que quiser com os dados JSON analisados
+        console.log("Dados analisados:", parsedData);
+
+    } catch (error) {
+        console.error("Erro ao manipular os dados analisados:", error);
+        // Lidar com erros ao manipular os dados
+
+        // Chame a função para deletar todas as linhas em main2 após o carregamento completo da página
+    }
+}
+
+        </script>
+
+</body>
+
+</html>
