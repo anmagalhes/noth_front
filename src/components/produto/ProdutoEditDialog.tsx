@@ -1,22 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import useProdutos from '@/hooks/useProdutos';
+import useProdutos from '@/hooks/useProdutos'; // ✅ hook correto
 import type { Produto } from '@/types/produto';
 
 // Helpers para mapear enum com/sem acento (UI ⇄ API)
-const toApiGrupoId = (g: string | undefined) => (g === 'SERVIÇO' ? 'SERVICO' : g ?? 'PRODUTO');
-const toUiGrupoId = (g: string | undefined) => (g === 'SERVICO' ? 'SERVIÇO' : 'PRODUTO');
+const toApiGrupoId = (g?: string) => (g === 'SERVIÇO' ? 'SERVICO' : g ?? 'PRODUTO');
+const toUiGrupoId = (g?: string) => (g === 'SERVICO' ? 'SERVIÇO' : 'PRODUTO');
 
 type Props = {
-  produto: Produto | null; // usa seu tipo já existente
+  produto: Produto | null; // seu tipo existente
   open?: boolean;
   onUpdated?: () => void;
   onClose?: () => void;
 };
 
 export default function ProdutoEditDialog({ produto, open = false, onUpdated, onClose }: Props) {
+  // 👇 Hook correto (CRUD + invalida cache via WS)
   const { updateProduto, updating } = useProdutos();
+
   const [isOpen, setIsOpen] = useState(open);
 
   // Estado do formulário com seus campos
@@ -42,18 +44,16 @@ export default function ProdutoEditDialog({ produto, open = false, onUpdated, on
     setForm({
       cod_produto: produto.cod_produto ?? '',
       produto_nome: produto.produto_nome ?? '',
-      und_servicos: produto.und_servicos ?? '',
-      grupo_id: toUiGrupoId(produto.grupo_id) as 'PRODUTO' | 'SERVIÇO',
-      tipo_produto: (produto.tipo_produto === 2 ? 2 : 1) as 1 | 2,
+      und_servicos: (produto as any).und_servicos ?? '',
+      grupo_id: toUiGrupoId((produto as any).grupo_id) as 'PRODUTO' | 'SERVIÇO',
+      tipo_produto: ((produto as any).tipo_produto === 2 ? 2 : 1) as 1 | 2,
       componente_id: Number(produto.componente_id ?? 0),
       operacao_id: Number(produto.operacao_id ?? 0),
       posto_trabalho_id: Number(produto.posto_trabalho_id ?? 0),
     });
   }, [produto]);
 
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
 
     if (name === 'tipo_produto') {
@@ -140,6 +140,7 @@ export default function ProdutoEditDialog({ produto, open = false, onUpdated, on
               className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
+
           <div className="col-span-12 sm:col-span-8">
             <label className="text-sm text-slate-700">Nome</label>
             <input
@@ -196,6 +197,7 @@ export default function ProdutoEditDialog({ produto, open = false, onUpdated, on
               className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
+
           <div className="col-span-12 sm:col-span-4">
             <label className="text-sm text-slate-700">Operação (ID)</label>
             <input
@@ -206,6 +208,7 @@ export default function ProdutoEditDialog({ produto, open = false, onUpdated, on
               className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
+
           <div className="col-span-12 sm:col-span-4">
             <label className="text-sm text-slate-700">Posto de Trabalho (ID)</label>
             <input

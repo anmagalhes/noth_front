@@ -1,7 +1,6 @@
 'use client';
 
-import useProdutos from '@/hooks/useProdutos';
-
+import useProdutos from '@/hooks/useProdutos'
 type Props = {
   id: number | null;
   open?: boolean;
@@ -31,7 +30,10 @@ export default function ProdutoDeleteDialog({ id, open = false, onDeleted, onClo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={() => !deleting && close()} />
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={() => !deleting && close()}
+      />
       <div className="relative z-10 w-full max-w-md rounded-xl bg-white p-4 shadow-lg">
         <h3 className="text-lg font-semibold text-slate-900">Excluir produto</h3>
         <p className="mt-2 text-sm text-slate-600">
