@@ -90,13 +90,23 @@ export default function ClientePage() {
   return (
     <div className="w-screen min-h-screen bg-slate-100 overflow-x-auto">
       <div className="py-6 min-w-[320px] sm:min-w-[640px] md:min-w-[1024px] lg:min-w-[1400px] mx-auto px-4 space-y-6">
-        {/* Cabeçalho */}
-        <div className="flex items-center justify-between">
-          <div>
+
+       {/* Cabeçalho */}
+        <div className="flex flex-col gap-1">
+          {/* Linha: Título + Botão lado a lado */}
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold">Clientes</h1>
-            <p className="text-sm text-gray-500">Gerencie cadastro, edição e exclusão de clientes.</p>
+
+            {/* Wrapper inline para garantir que fique na mesma linha */}
+            <div className="inline-flex">
+              <ClienteCreateDialog onCreated={onCreated} />
+            </div>
           </div>
-          <ClienteCreateDialog onCreated={onCreated} />
+
+          {/* Descrição embaixo */}
+          <p className="text-sm text-gray-500">
+            Gerencie cadastro, edição e exclusão de clientes.
+          </p>
         </div>
 
         {/* Filtros */}
