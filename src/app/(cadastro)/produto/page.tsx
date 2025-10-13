@@ -11,7 +11,7 @@ import {
   FiSearch,
 } from 'react-icons/fi';
 
-import useProdutos from '@/hooks/useProdutosWS'
+import useProdutosWS from '@/hooks/useProdutosWS'
 import type { Produto as ProdutoDTO, ProdutoTabela } from '@/types/produto';
 
 import ProdutoCreateDialog from '@/components/produto/ProdutoCreateDialog';
@@ -51,7 +51,7 @@ export default function ProdutosPage() {
     totalPages,
     refetch,
     pageState: { page: p, setPage, pageSize, setPageSize, q, setQ },
-  } = useProdutos({ page: 1, pageSize: 10, q: '' });
+  } = useProdutosWS({ page: 1, pageSize: 10, q: '' });
 
   const erro = error instanceof Error ? error.message : '';
 
