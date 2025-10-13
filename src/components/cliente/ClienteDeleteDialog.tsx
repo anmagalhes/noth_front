@@ -1,25 +1,26 @@
-// src/components/cliente/ClienteDeleteDialog.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import useClientes from '@/hooks/useClientes';
 
 export default function ClienteDeleteDialog({
   id,
+  open,
   onDeleted,
-  label = 'Excluir',
+  onClose,
 }: {
   id: number;
+  open: boolean;
   onDeleted?: () => void;
-  label?: string;
+  onClose: () => void;
 }) {
   const { deleteCliente, deleting } = useClientes();
 
   function confirmDelete() {
-    if (!confirm('Excluir este cliente?')) return;
     deleteCliente(id, {
       onSuccess() {
         onDeleted?.();
+        onClose();
       },
       onError(err: any) {
         alert(err?.message || 'Erro ao excluir cliente');
@@ -27,13 +28,31 @@ export default function ClienteDeleteDialog({
     });
   }
 
+  if (!open) return null;
+
   return (
-    <button
-      onClick={confirmDelete}
-      disabled={deleting}
-      className="px-3 py-2 rounded border border-red-600 text-red-700 hover:bg-red-50 disabled:opacity-60"
-    >
-      {deleting ? 'Excluindo...' : label}
-    </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Confirmar exclusão</h2>
+        <p className="text-sm text-gray-600 mb-6">
+          Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={confirmDelete}
+            disabled={deleting}
+            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 text-sm disabled:opacity-60"
+          >
+            {deleting ? 'Excluindo...' : 'Confirmar'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -7,6 +7,7 @@ import ClienteForm from '@/components/cliente/ClienteForm';
 import useClientes from '@/hooks/useClientes';
 import type { ClienteCreate } from '@/types/cliente';
 
+
 export default function ClienteCreateDialog({
   onCreated,
   buttonLabel = 'Novo Cliente',

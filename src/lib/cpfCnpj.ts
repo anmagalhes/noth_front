@@ -1,9 +1,11 @@
-// Remove não dígitos
-const d = (v: string) => v.replace(/\D+/g, '');
+// src/lib/cpfCnpj.ts
+// Remove não-dígitos
+const d = (v: string) => (v ?? '').replace(/\D+/g, '');
 
 export function isValidCPF(value: string): boolean {
   const cpf = d(value);
   if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+
   let sum = 0;
   for (let i = 0; i < 9; i++) sum += parseInt(cpf[i]) * (10 - i);
   let rev = (sum * 10) % 11;
@@ -20,17 +22,18 @@ export function isValidCPF(value: string): boolean {
 export function isValidCNPJ(value: string): boolean {
   const cnpj = d(value);
   if (!cnpj || cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
-  const calc = (base: string, pos: number) => {
-    let sum = 0;
-    let weight = pos;
-    for (let i = 0; i < base.length; i++) {
-      sum += parseInt(base[i]) * weight--;
-      if (weight < 2) weight = 9;
-    }
-    const rest = sum % 11;
-    return rest < 2 ? 0 : 11 - rest;
+
+  const w1 = [5,4,3,2,9,8,7,6,5,4,3,2];
+  const w2 = [6,5,4,3,2,9,8,7,6,5,4,3,2];
+
+  const calc = (base: string, weights: number[]) => {
+    const s = base.split('').reduce((acc, cur, i) => acc + parseInt(cur) * weights[i], 0);
+    const r = s % 11;
+    return (r < 2) ? '0' : String(11 - r);
   };
-  const dv1 = calc(cnpj.slice(0, 12), 5);
-  const dv2 = calc(cnpj.slice(0, 13), 6);
-  return dv1 === parseInt(cnpj[12]) && dv2 === parseInt(cnpj[13]);
+
+  const dv1 = calc(cnpj.slice(0, 12), w1);
+  const dv2 = calc(cnpj.slice(0, 12) + dv1, w2);
+
+  return cnpj.slice(-2) === dv1 + dv2;
 }
