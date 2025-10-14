@@ -95,3 +95,15 @@ export function toApiGrupoId(g: GrupoIdUI | GrupoIdAPI): GrupoIdAPI {
 export function toUiGrupoId(g: GrupoIdAPI | string): GrupoIdUI {
   return g === 'SERVICO' ? 'SERVIÇO' : 'PRODUTO';
 }
+
+export type ProdutoCreate = {
+  cod_produto: string;
+  produto_nome: string;
+  und_servicos: string;
+  grupo_id: 'PRODUTO' | 'SERVICO';
+  tipo_produto: 1 | 2;
+  componente_id: number;
+  operacao_id: number;
+  posto_trabalho_id: number;
+  fornecedor_ids: number[];
+};

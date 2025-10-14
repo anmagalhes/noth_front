@@ -1,41 +1,43 @@
-'use client';
 
 import { useState } from 'react';
+import { useOptions } from '@/hooks/UseOptions';
 import useProdutos from '@/hooks/useProdutos';
 import type { ProdutoCreate } from '@/types/produto';
-import { useOptions } from '@/hooks/useOptions';
 
 type Props = {
   onCreated?: () => void;
   trigger?: React.ReactNode;
 };
 
-type Option = { id: number; nome: string }; // ajuste se sua API retornar outro shape
-
 export default function ProdutoCreateDialog({ onCreated, trigger }: Props) {
   const { createProduto, creating } = useProdutos();
   const [open, setOpen] = useState(false);
 
-  // Fallback seguro para evitar `undefined.map` no primeiro render
   const {
-    options: componentes = [],
+    data: componentes = [],
     isLoading: loadingComponentes = true,
-  } = useOptions<Option>('/api/componentes/options') ?? { options: [], isLoading: true };
+  } = useOptions('/componente-options');
 
   const {
-    options: operacoes = [],
+    data: operacoes = [],
     isLoading: loadingOperacoes = true,
-  } = useOptions<Option>('/api/operacoes/options') ?? { options: [], isLoading: true };
+  } = useOptions('/operacao-options');
 
   const {
-    options: postos = [],
+    data: postos = [],
     isLoading: loadingPostos = true,
-  } = useOptions<Option>('/api/postos-trabalho/options') ?? { options: [], isLoading: true };
+  } = useOptions('/posto_trabalho-options');
 
   const {
-    options: fornecedores = [],
+    data: fornecedores = [],
     isLoading: loadingFornecedores = true,
-  } = useOptions<Option>('/api/fornecedores/options') ?? { options: [], isLoading: true };
+  } = useOptions('/fornecedor/options');
+
+console.log('Componentes:', componentes);
+console.log('Operações:', operacoes);
+console.log('Postos:', postos);
+console.log('Fornecedores:', fornecedores);
+
 
   const [form, setForm] = useState<ProdutoCreate>({
     cod_produto: '',
@@ -48,6 +50,7 @@ export default function ProdutoCreateDialog({ onCreated, trigger }: Props) {
     posto_trabalho_id: 0,
     fornecedor_ids: [],
   });
+
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
