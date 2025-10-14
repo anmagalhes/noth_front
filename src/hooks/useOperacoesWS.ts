@@ -51,13 +51,26 @@ export default function useOperacoes() {
   });
 
 // ✅ DELETE com optimistic + rollback + idempotência (404/409) + logs úteis
-  const updateOperacaoMutation = useMutation({
-    mutationFn: updateOperacao,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['operacoes'] });
-    },
+    const deleteOperacao = async (id: number): Promise<void> => {
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: 'DELETE',
   });
 
+  if (!res.ok) {
+    if (res.status === 404) {
+      console.warn(`⚠️ Operação ${id} já foi deletada (idempotência)`);
+      return;
+    }
+    if (res.status === 409) {
+      console.warn(`⚠️ Conflito ao deletar operação ${id}`);
+      return;
+    }
+    const errorText = await res.text();
+    throw new Error(`Erro ao deletar operação: ${res.status} - ${errorText}`);
+  }
+
+  console.log(`✅ Operação ${id} deletada com sucesso`);
+};
 
   const createOperacaoMutation = useMutation({
     mutationFn: createOperacao,
@@ -65,6 +78,36 @@ export default function useOperacoes() {
       queryClient.invalidateQueries({ queryKey: ['operacoes'] });
     },
   });
+
+  const deleteOperacaoMutation = useMutation({
+  mutationFn: deleteOperacao,
+  // Otimistic update
+  onMutate: async (id: number) => {
+    await queryClient.cancelQueries({ queryKey: ['operacoes'] });
+
+    const previousData = queryClient.getQueryData<OperacaoItem[]>(['operacoes']);
+
+    queryClient.setQueryData<OperacaoItem[]>(['operacoes'], (old = []) =>
+      old.filter((o) => o.id !== id)
+    );
+
+    console.log(`🧹 Otimistic delete: operação ${id} removida do cache`);
+
+    return { previousData };
+  },
+  // Rollback em erro
+  onError: (error, id, context) => {
+    console.error(`❌ Erro ao deletar operação ${id}:`, error);
+    if (context?.previousData) {
+      queryClient.setQueryData(['operacoes'], context.previousData);
+      console.log(`↩️ Rollback aplicado para operação ${id}`);
+    }
+  },
+  // Revalida os dados
+  onSettled: () => {
+    queryClient.invalidateQueries({ queryKey: ['operacoes'] });
+  },
+});
 
   const updateOperacaoMutation = useMutation({
     mutationFn: updateOperacao,
@@ -118,19 +161,6 @@ export default function useOperacoes() {
       }
     };
 
-    ws.onerror = (ev) => {
-      // Browser envia Event genérico
-      const e = ev as Event;
-      console.error('❌ Erro WebSocket Operações:', {
-        type: e.type,
-        // @ts-expect-error: ws é conhecido aqui
-        readyState: ws.readyState,
-      });
-      // deixe o onclose cuidar de reconexão se você implementar
-    };
-
-    ws.onclose = () => console.log('🔌 WebSocket Operações desconectado');
-
     // ✅ Debounce local (tipo seguro pro browser)
     let invalidateTimeout: ReturnType<typeof setTimeout> | null = null;
     const debounceInvalidate = () => {
@@ -147,14 +177,32 @@ export default function useOperacoes() {
     };
   }, [queryClient]);
 
-  return {
-    operacoesQuery,
-    // expose mutate e mutateAsync se quiser usar await em Dialogs
-    deleteOperacao: deleteOperacao.mutate,
-    createOperacao: createOperacaoMutation.mutate,
-    updateOperacao: updateOperacaoMutation.mutate,
-    deleteOperacaoAsync: deleteOperacao.mutateAsync,
-    deleting: deleteOperacao.isPending,
-    updating: updateOperacaoMutation.isPending,
-  };
+return {
+  // dados
+  operacoesQuery,
+  operacoes: operacoesQuery.data ?? [],
+  isLoading: operacoesQuery.isLoading,
+  isError: operacoesQuery.isError,
+  error: operacoesQuery.error,
+
+  // mutações
+  createOperacao: createOperacaoMutation.mutate,
+  createOperacaoAsync: createOperacaoMutation.mutateAsync,
+  createError: createOperacaoMutation.error,
+  creating: createOperacaoMutation.isPending,
+
+  updateOperacao: updateOperacaoMutation.mutate,
+  updateOperacaoAsync: updateOperacaoMutation.mutateAsync,
+  updateError: updateOperacaoMutation.error,
+  updating: updateOperacaoMutation.isPending,
+
+  deleteOperacao: deleteOperacaoMutation.mutate,
+  deleteOperacaoAsync: deleteOperacaoMutation.mutateAsync,
+  deleteError: deleteOperacaoMutation.error,
+  deleting: deleteOperacaoMutation.isPending,
+
+  // utilidades
+  refetch: operacoesQuery.refetch,
+};
+
 }

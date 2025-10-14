@@ -430,7 +430,7 @@ export default function OperacoesPage() {
         {operacaoExcluindoId != null && (
           <OperacaoDeleteDialog
             open={operacaoExcluindoId != null}
-            operacaoId={operacaoExcluindoId}
+            id={operacaoExcluindoId}
             onClose={() => setOperacaoExcluindoId(null)}
             onDeleted={refreshPage}
           />

@@ -1,56 +1,56 @@
 'use client';
+
+import React from 'react';
 import useOperacoes from '@/hooks/useOperacoesWS';
 
-type Props = {
-  id: number | null;
-  open?: boolean;
-  onDeleted?: (id: number) => void;
-  onClose?: () => void;
-};
+export default function OperacaoDeleteDialog({
+  id,
+  open,
+  onDeleted,
+  onClose,
+}: {
+  id: number;
+  open: boolean;
+  onDeleted?: () => void;
+  onClose: () => void;
+}) {
+  const { deleteOperacao, updating } = useOperacoes();
 
-export default function OperacaoDeleteDialog({ id, open = false, onDeleted, onClose }: Props) {
-  // ✅ use também deleteOperacaoAsync do hook
-  const { deleteOperacaoAsync, deleting } = useOperacoes();
-
-  if (!open || id == null) return null;
-
-  function close() {
-    if (!deleting) onClose?.();
+  function confirmDelete() {
+    deleteOperacao(id, {
+      onSuccess() {
+        console.log(`✅ Operação ${id} excluída`);
+        onDeleted?.();
+        onClose();
+      },
+      onError(err: any) {
+        alert(err?.message || 'Erro ao excluir operação');
+      },
+    });
   }
 
-  async function confirm() {
-    if (id == null || deleting) return;
-    try {
-      await deleteOperacaoAsync(id);     // optimistic + invalidate já tratados no hook
-      onDeleted?.(id);
-      close();
-    } catch (err: any) {
-      alert(err?.message ?? 'Falha ao excluir');
-    }
-  }
+  if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={() => !deleting && close()} />
-      <div className="relative z-10 w-full max-w-md rounded-xl bg-white p-4 shadow-lg">
-        <h3 className="text-lg font-semibold text-slate-900">Excluir operação</h3>
-        <p className="mt-2 text-sm text-slate-600">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Confirmar exclusão</h2>
+        <p className="text-sm text-gray-600 mb-6">
           Tem certeza que deseja excluir esta operação? Esta ação não pode ser desfeita.
         </p>
-        <div className="mt-4 flex items-center justify-end gap-2">
+        <div className="flex justify-end gap-3">
           <button
-            disabled={deleting}
-            onClick={close}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
+            onClick={onClose}
+            className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-sm"
           >
             Cancelar
           </button>
           <button
-            disabled={deleting}
-            onClick={confirm}
-            className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+            onClick={confirmDelete}
+            disabled={updating}
+            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 text-sm disabled:opacity-60"
           >
-            {deleting ? 'Excluindo...' : 'Excluir'}
+            {updating ? 'Excluindo...' : 'Confirmar'}
           </button>
         </div>
       </div>
