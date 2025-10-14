@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useOptions } from '@/hooks/UseOptions';
 import useOperacoes from '@/hooks/useOperacoesWS';
+import type { OperacaoCreate } from '@/types/operacao';
 
 type Props = {
   onCreated?: () => void;
@@ -15,6 +15,8 @@ export default function OperacaoCreateDialog({ onCreated, trigger }: Props) {
     op_nome: '',
   });
 
+  const { createOperacao } = useOperacoes();
+
   const handleChange = (field: keyof OperacaoCreate, value: string) => {
     setForm((prev) => ({
       ...prev,
@@ -23,10 +25,13 @@ export default function OperacaoCreateDialog({ onCreated, trigger }: Props) {
   };
 
   const handleSubmit = async () => {
-    // Aqui você chama o hook de criação, ex: createOperacao(form)
-    // await createOperacao(form);
-    if (onCreated) onCreated();
-    setOpen(false);
+    try {
+      await createOperacao(form);
+      if (onCreated) onCreated();
+      setOpen(false);
+    } catch (error) {
+      console.error('Erro ao criar operação:', error);
+    }
   };
 
   return (
@@ -48,7 +53,7 @@ export default function OperacaoCreateDialog({ onCreated, trigger }: Props) {
                 <input
                   type="text"
                   value={form.op_grupo_processo}
-                  onChange={(e) => handleChange('op_grupo_processo', e.target.value)}
+                  onChange={(e) => handleChange('op_grupo_processo', e.target.value.toUpperCase().slice(0, 3))}
                   className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
                   maxLength={3}
                   placeholder="Ex: GRP"
@@ -60,7 +65,7 @@ export default function OperacaoCreateDialog({ onCreated, trigger }: Props) {
                 <input
                   type="text"
                   value={form.op_nome}
-                  onChange={(e) => handleChange('op_nome', e.target.value)}
+                  onChange={(e) => handleChange('op_nome', e.target.value.toUpperCase())}
                   className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
                   maxLength={150}
                   placeholder="Ex: Corte de chapa"
