@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import FancyActionButton from '@/components/ui/ActionButton'
 import {
   FiChevronDown, FiChevronUp, FiEdit2, FiTrash2, FiPlus, FiRefreshCw, FiSearch,
   FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown
@@ -332,21 +333,27 @@ export default function ProdutosPage() {
                           <td className="px-3 py-2">{getPostoNome(p)}</td>
                           <td className="px-3 py-2">{formatDateBR((p as any).data)}</td>
                           <td className="px-3 py-2">
-                            <div className="flex justify-end gap-2">
-                              <button
+
+                            <div className="flex justify-end gap-1.5 sm:gap-2">
+                              <FancyActionButton
+                                variant="edit"
+                                icon={<FiEdit2 className="h-4 w-4" />}
+                                label="Editar"
+                                aria-label={`Editar ${String((p as any)?.produto_nome ?? (p as any)?.cod_produto ?? '')}`}
+                                title="Editar"
                                 onClick={() => setProdutoEditando(p as ProdutoDTO)}
-                                className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline text-sm"
-                              >
-                                <FiEdit2 className="w-4 h-4" />
-                                Editar
-                              </button>
-                              <button
+                                className="cursor-pointer"
+                              />
+
+                              <FancyActionButton
+                                variant="delete"
+                                icon={<FiTrash2 className="h-4 w-4" />}
+                                label="Excluir"
+                                aria-label={`Excluir ${String((p as any)?.produto_nome ?? (p as any)?.cod_produto ?? '')}`}
+                                title="Excluir"
                                 onClick={() => setProdutoExcluindoId((p as any).id)}
-                                className="flex items-center gap-1 text-red-600 hover:text-red-800 hover:underline text-sm"
-                              >
-                                <FiTrash2 className="w-4 h-4" />
-                                Excluir
-                              </button>
+                                className="cursor-pointer"
+                              />
                             </div>
                           </td>
                         </tr>

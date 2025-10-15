@@ -1,139 +1,229 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import usePostosTrabalho from '@/hooks/usePostosTrabalhoWs'
-import type { PostoTrabalhoItem } from '@/types/posto_trabalho';
+import React, { useEffect, useRef, useState } from 'react';
+import useProdutos from '@/hooks/useProdutos';
+import type { Produto as ProdutoDTO } from '@/types/produto';
 
 type Props = {
-  posto: PostoTrabalhoItem | null;
+  produto: ProdutoDTO | null;
   open?: boolean;
   onUpdated?: () => void;
   onClose?: () => void;
 };
 
-export default function PostoTrabalhoEditDialog({
-  posto,
+export default function ProdutoEditDialog({
+  produto,
   open = false,
   onUpdated,
   onClose,
 }: Props) {
-  const { updatePosto, updating } = usePostosTrabalho();
+  // Você pode passar params reais se precisar; para a mutation, não é necessário
+  const { updateProduto, updating } = useProdutos({ page: 1, pageSize: 1 });
 
-  const [isOpen, setIsOpen] = useState(open);
+  const [cod, setCod] = useState('');
   const [nome, setNome] = useState('');
+  const [grupo, setGrupo] = useState<'PRODUTO' | 'SERVIÇO' | 'SERVICO' | ''>('');
+  const [tipo, setTipo] = useState<'1' | '2' | ''>('');
+  const [undServ, setUndServ] = useState('');
+
   const [erro, setErro] = useState<string>('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const isOpen = !!produto && open;
+  const titleId = 'edit-produto-title';
 
-  // Sincroniza abertura externa
+  // Carrega os valores ao abrir
   useEffect(() => {
-    setIsOpen(open);
-    if (open) setErro('');
-  }, [open]);
+    if (isOpen && produto) {
+      setCod(String((produto as any).cod_produto ?? ''));
+      setNome(String((produto as any).produto_nome ?? ''));
+      const g = (produto as any).grupo_id ?? '';
+      setGrupo(g === 'SERVICO' ? 'SERVIÇO' : (g || '')); // exibe com acento
+      const t = (produto as any).tipo_produto;
+      setTipo(t === 1 || t === '1' ? '1' : t === 2 || t === '2' ? '2' : '');
+      setUndServ(String((produto as any).und_servicos ?? ''));
+      setErro('');
+    }
+  }, [isOpen, produto]);
 
-  // Carrega valores iniciais quando receber `posto`
+  // Foco automático
   useEffect(() => {
-    if (!posto) return;
-    setNome(posto.posto_trabalho_nome ?? '');
-  }, [posto]);
+    if (isOpen) {
+      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen]);
+
+  // Fechar com ESC
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && isOpen && !updating) {
+        close();
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, updating]);
 
   function close() {
-    setIsOpen(false);
     onClose?.();
   }
 
   function validar(): string {
-    if (!nome.trim()) return 'Informe o nome do Posto de Trabalho.';
+    if (!cod.trim()) return 'Informe o código do produto.';
+    if (!nome.trim()) return 'Informe o nome do produto.';
+    if (!grupo) return 'Selecione o grupo.';
+    if (!tipo) return 'Selecione o tipo.';
     return '';
   }
 
   function submit() {
-    if (!posto) return;
+    if (!produto) return;
     const msg = validar();
     if (msg) {
       setErro(msg);
       return;
     }
 
-    // PATCH/PUT: envia apenas o campo necessário
-    const patch = {
-      posto_trabalho_nome: nome.trim(),
-      // Se seu backend ainda exigir `data_execucao` no PUT,
-      // descomente a linha abaixo para evitar 422:
-      // data_execucao: posto.data_execucao,
+    // Normaliza grupo com backend (sem acento)
+    const grupo_backend = grupo === 'SERVIÇO' ? 'SERVICO' : grupo;
+
+    const patch: any = {
+      cod_produto: cod.trim(),
+      produto_nome: nome.trim(),
+      grupo_id: grupo_backend,
+      tipo_produto: tipo === '2' ? 2 : 1,
+      und_servicos: undServ.trim(),
     };
 
     setErro('');
-    updatePosto(
-      { id: posto.id, patch },
+    updateProduto(
+      { id: (produto as any).id, patch },
       {
         onSuccess: () => {
           onUpdated?.();
           close();
         },
         onError: (err: any) => {
-          const txt = err?.message || 'Erro ao atualizar posto de trabalho';
+          const txt = err?.message || 'Erro ao atualizar produto';
           if (/duplicad|unique|exists/i.test(txt)) {
-            setErro('Já existe um posto de trabalho com esse nome.');
+            setErro('Já existe um produto com esse código/nome.');
           } else {
             setErro(txt);
           }
         },
-      },
+      }
     );
   }
 
-  if (!isOpen || !posto) return null;
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+    >
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/40"
         onClick={() => !updating && close()}
       />
-      {/* Conteúdo */}
-      <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-4 shadow-lg">
+      {/* Card */}
+      <div className="relative z-10 w-full max-w-2xl rounded-xl bg-white p-4 shadow-lg">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Editar Posto de Trabalho</h3>
+          <h3 id={titleId} className="text-lg font-semibold">Editar Produto</h3>
           <button
+            type="button"
             onClick={() => !updating && close()}
-            className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100"
+            className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/50"
           >
             Fechar
           </button>
         </div>
 
-        {!!erro && (
-          <p className="mb-3 text-sm text-red-600">
-            {erro}
-          </p>
-        )}
+        {!!erro && <p className="mb-3 text-sm text-red-600">{erro}</p>}
 
         <div className="grid grid-cols-12 gap-3">
-          <div className="col-span-12">
-            <label className="text-sm text-slate-700">Nome do Posto de Trabalho</label>
+          {/* Código */}
+          <div className="col-span-12 sm:col-span-4">
+            <label className="text-sm text-slate-700">Código</label>
             <input
-              name="posto_trabalho_nome"
+              ref={inputRef}
+              value={cod}
+              onChange={(e) => setCod(e.target.value)}
+              maxLength={50}
+              placeholder="Ex.: P-00001"
+              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            />
+          </div>
+
+          {/* Nome */}
+          <div className="col-span-12 sm:col-span-8">
+            <label className="text-sm text-slate-700">Nome</label>
+            <input
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              maxLength={50}
-              placeholder="Ex.: Linha 01 - Montagem"
-              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+              maxLength={120}
+              placeholder="Ex.: Produto XYZ"
+              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             />
-            <p className="mt-1 text-xs text-gray-500">{nome.length}/50</p>
+          </div>
+
+          {/* Grupo */}
+          <div className="col-span-12 sm:col-span-4">
+            <label className="text-sm text-slate-700">Grupo</label>
+            <select
+              value={grupo}
+              onChange={(e) => setGrupo(e.target.value as any)}
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            >
+              <option value="">Selecione...</option>
+              <option value="PRODUTO">Produto</option>
+              <option value="SERVIÇO">Serviço</option>
+            </select>
+          </div>
+
+          {/* Tipo */}
+          <div className="col-span-12 sm:col-span-4">
+            <label className="text-sm text-slate-700">Tipo</label>
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value as any)}
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            >
+              <option value="">Selecione...</option>
+              <option value="1">Produto</option>
+              <option value="2">Tarefa</option>
+            </select>
+          </div>
+
+          {/* Unidade de Serviços (opcional) */}
+          <div className="col-span-12 sm:col-span-4">
+            <label className="text-sm text-slate-700">Unid. Serviços</label>
+            <input
+              value={undServ}
+              onChange={(e) => setUndServ(e.target.value)}
+              maxLength={50}
+              placeholder="Ex.: UND01"
+              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            />
           </div>
         </div>
 
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
+            type="button"
             onClick={() => !updating && close()}
-            className="rounded bg-gray-100 px-3 py-2 text-sm hover:bg-gray-200"
+            className="rounded bg-gray-100 px-3 py-2 text-sm hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/50"
           >
             Cancelar
           </button>
           <button
+            type="button"
             onClick={submit}
-            disabled={updating}
-            className="rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            disabled={updating || !cod.trim() || !nome.trim() || !grupo || !tipo}
+            className="rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
           >
             {updating ? 'Salvando...' : 'Salvar'}
           </button>
