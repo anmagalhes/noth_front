@@ -16,8 +16,8 @@ export type ProdutoCreatePayload = {
   cod_produto: string;
   produto_nome: string;
   und_servicos: string;
-  grupo_id: 'PRODUTO' | 'SERVICO';
-  tipo_produto: 1 | 2;
+  grupo_id: 'PRODUTO' | 'SERVICO'; // back usa 'SERVICO' (sem acento)
+  tipo_produto: 1 | 2;            // 1=Produto, 2=Tarefa
   componente_id: number;
   operacao_id: number;
   posto_trabalho_id: number;
@@ -33,21 +33,78 @@ const baseWS = baseHTTP.startsWith('https')
   : baseHTTP.replace('http', 'ws');
 const WS_URL = `${baseWS}/api/ws/produtos`;
 
-// --- API helpers
-async function fetchProdutos({ page, pageSize, q }: { page: number; pageSize: number; q?: string }): Promise<ProdutosResponse> {
+// --- Normalizador (aceita array ou diferentes formatos paginados)
+function normalizeProdutosJSON(
+  json: any,
+  response: Response,
+  page: number,
+  pageSize: number
+): ProdutosResponse {
+  // 1) Array puro: [...produtos]
+  if (Array.isArray(json)) {
+    const headerTotal = Number(response.headers.get('x-total-count'));
+    const total = Number.isFinite(headerTotal) ? headerTotal : json.length;
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    return { data: json, page, pages, total };
+  }
+
+  // 2) { data, page, pages, total }
+  if (json && Array.isArray(json.data)) {
+    const total = Number.isFinite(json.total) ? json.total : json.data.length;
+    const pages = Number.isFinite(json.pages) ? json.pages : Math.max(1, Math.ceil(total / pageSize));
+    return {
+      data: json.data,
+      page: Number.isFinite(json.page) ? json.page : page,
+      pages,
+      total,
+    };
+  }
+
+  // 3) { items, total, totalPages }
+  if (json && Array.isArray(json.items)) {
+    const total = Number.isFinite(json.total) ? json.total : json.items.length;
+    const pages = Number.isFinite(json.totalPages)
+      ? json.totalPages
+      : Math.max(1, Math.ceil(total / pageSize));
+    return { data: json.items, page, pages, total };
+  }
+
+  // 4) Fallback
+  return { data: [], page, pages: 1, total: 0 };
+}
+
+// --- API helpers (usa o `signal` do React Query para cancelamento)
+async function fetchProdutos({
+  page,
+  pageSize,
+  q,
+  signal,
+}: {
+  page: number;
+  pageSize: number;
+  q?: string;
+  signal?: AbortSignal;
+}): Promise<ProdutosResponse> {
   const url = new URL(API_URL);
   url.searchParams.set('page', String(page));
   url.searchParams.set('pageSize', String(pageSize));
   if (q) url.searchParams.set('q', q);
 
-  const response = await fetch(url.toString(), { cache: 'no-store' });
+  const response = await fetch(url.toString(), {
+    cache: 'no-store',
+    signal,
+  });
+
   if (!response.ok) {
     const text = await response.text().catch(() => '');
     throw new Error(text || 'Erro ao buscar produtos');
   }
-  return response.json();
+
+  const json = await response.json();
+  return normalizeProdutosJSON(json, response, page, pageSize);
 }
 
+// --- API CRUD
 async function createProdutoAPI(novo: ProdutoCreatePayload) {
   const res = await fetch(API_URL, {
     method: 'POST',
@@ -92,35 +149,46 @@ export default function useProdutos(param?: { page?: number; pageSize?: number; 
   const pageSize = param?.pageSize ?? 10;
   const q = param?.q ?? '';
 
+  // Chave de cache inclui parâmetros (evita servir cache errado)
   const queryKey = useMemo(() => ['produtos', { page, pageSize, q }], [page, pageSize, q]);
 
+  // Query: usa `signal` do React Query
   const produtosQuery = useQuery<ProdutosResponse, Error>({
     queryKey,
-    queryFn: () => fetchProdutos({ page, pageSize, q }),
+    queryFn: ({ signal }) => fetchProdutos({ page, pageSize, q, signal }),
     staleTime: 10 * 60 * 1000,
     keepPreviousData: true,
     refetchOnWindowFocus: false,
   });
 
-  // Mutations
-  const { mutate: createProduto, error: createError, isPending: creating } =
-    useMutation({
-      mutationFn: createProdutoAPI,
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }),
-    });
+  // Mutations (invalida todas as queries começando com 'produtos')
+  const { mutate: createProduto, error: createError, isPending: creating } = useMutation({
+    mutationFn: createProdutoAPI,
+    onSuccess: () => {
+      toast.success('Produto criado');
+      queryClient.invalidateQueries({ queryKey: ['produtos'], exact: false });
+    },
+    onError: (e: any) => toast.error(e?.message ?? 'Erro ao criar produto'),
+  });
 
-  const { mutate: updateProduto, error: updateError, isPending: updating } =
-    useMutation({
-      mutationFn: ({ id, patch }: { id: number; patch: ProdutoUpdatePayload }) =>
-        updateProdutoAPI(id, patch),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }),
-    });
+  const { mutate: updateProduto, error: updateError, isPending: updating } = useMutation({
+    mutationFn: ({ id, patch }: { id: number; patch: ProdutoUpdatePayload }) =>
+      updateProdutoAPI(id, patch),
+    onSuccess: () => {
+      toast.success('Produto atualizado');
+      queryClient.invalidateQueries({ queryKey: ['produtos'], exact: false });
+    },
+    onError: (e: any) => toast.error(e?.message ?? 'Erro ao atualizar produto'),
+  });
 
-  const { mutate: deleteProduto, error: deleteError, isPending: deleting } =
-    useMutation({
-      mutationFn: (id: number) => deleteProdutoAPI(id),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }),
-    });
+  const { mutate: deleteProduto, error: deleteError, isPending: deleting } = useMutation({
+    mutationFn: (id: number) => deleteProdutoAPI(id),
+    onSuccess: () => {
+      toast.success('Produto excluído');
+      queryClient.invalidateQueries({ queryKey: ['produtos'], exact: false });
+    },
+    onError: (e: any) => toast.error(e?.message ?? 'Erro ao excluir produto'),
+  });
 
   // WebSocket para atualizações em tempo real
   useEffect(() => {
@@ -128,10 +196,19 @@ export default function useProdutos(param?: { page?: number; pageSize?: number; 
     try {
       ws = new WebSocket(WS_URL);
       ws.onmessage = (event) => {
-        console.log('Mensagem WS recebida:', event.data);
-        if (event.data === 'update') {
-          toast.success('Atualização recebida via WebSocket');
-          queryClient.invalidateQueries({ queryKey: ['produtos'] });
+        // Tenta JSON, senão assume string 'update'
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg?.type === 'produto:changed') {
+            queryClient.invalidateQueries({ queryKey: ['produtos'], exact: false });
+            toast.success('Atualização via WebSocket');
+            return;
+          }
+        } catch {
+          if (event.data === 'update') {
+            queryClient.invalidateQueries({ queryKey: ['produtos'], exact: false });
+            toast.success('Atualização via WebSocket');
+          }
         }
       };
     } catch (e) {
@@ -139,9 +216,7 @@ export default function useProdutos(param?: { page?: number; pageSize?: number; 
     }
 
     return () => {
-      try {
-        ws?.close();
-      } catch {}
+      try { ws?.close(); } catch {}
     };
   }, [queryClient]);
 
