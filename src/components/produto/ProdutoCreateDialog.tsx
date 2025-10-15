@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useOptions } from '@/hooks/UseOptions';
 import useProdutos from '@/hooks/useProdutos';
 import type { ProdutoCreate } from '@/types/produto';
+import { toast } from 'react-hot-toast';
 
 type Props = {
   onCreated?: () => void;
@@ -33,13 +34,8 @@ export default function ProdutoCreateDialog({ onCreated, trigger }: Props) {
     isLoading: loadingFornecedores = true,
   } = useOptions('/fornecedor/options');
 
-console.log('Componentes:', componentes);
-console.log('Operações:', operacoes);
-console.log('Postos:', postos);
-console.log('Fornecedores:', fornecedores);
-
-
-  const [form, setForm] = useState<ProdutoCreate>({
+  function resetForm() {
+  setForm({
     cod_produto: '',
     produto_nome: '',
     und_servicos: '',
@@ -50,7 +46,64 @@ console.log('Fornecedores:', fornecedores);
     posto_trabalho_id: 0,
     fornecedor_ids: [],
   });
+}
 
+function submit() {
+  const msg = validar();
+  if (msg) {
+    toast.error(msg);
+    return;
+  }
+
+  createProduto(
+    {
+      ...form,
+      componente_id: Number(form.componente_id),
+      operacao_id: Number(form.operacao_id),
+      posto_trabalho_id: Number(form.posto_trabalho_id),
+    },
+    {
+      onSuccess: () => {
+        toast.success('Produto criado com sucesso!');
+        onCreated?.();
+        setOpen(false);
+        resetForm();
+      },
+      onError: (err) => toast.error(err.message),
+    }
+  );
+}
+
+
+// normaliza qualquer payload para [{ id: number, label: string }]
+function normalizeOptions(raw: any): Array<{ id: number; label: string }> {
+  // aceita array direto ou objetos do tipo { options: [...] } | { data: [...] }
+  const arr: any[] = Array.isArray(raw)
+    ? raw
+    : (raw?.options ?? raw?.data ?? raw ?? []);
+
+  return arr
+    .map((p) => ({
+      id: Number(
+        p?.id ??
+          p?.value ??
+          p?.key ??
+          p?.codigo ??
+          p?.posto_trabalho_id ??
+          0
+      ),
+      label: String(
+        p?.label ??
+          p?.posto_trabalho_nome ??
+          p?.nome ??
+          p?.descricao ??
+          p?.cod_produto ??
+          p?.id ??
+          ''
+      ),
+    }))
+    .filter((x) => x.id && x.label);
+}
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
@@ -84,36 +137,22 @@ console.log('Fornecedores:', fornecedores);
     return '';
   }
 
-  function submit() {
-    const msg = validar();
-    if (msg) return alert(msg);
-    createProduto(
-      {
-        ...form,
-        componente_id: Number(form.componente_id),
-        operacao_id: Number(form.operacao_id),
-        posto_trabalho_id: Number(form.posto_trabalho_id),
-      },
-      {
-        onSuccess: () => {
-          onCreated?.();
-          setOpen(false);
-          setForm({
-            cod_produto: '',
-            produto_nome: '',
-            und_servicos: '',
-            grupo_id: 'PRODUTO',
-            tipo_produto: 1,
-            componente_id: 0,
-            operacao_id: 0,
-            posto_trabalho_id: 0,
-            fornecedor_ids: [],
-          });
-        },
-        onError: (err) => alert(err.message),
-      }
-    );
-  }
+  const [form, setForm] = useState<ProdutoCreate>({
+  cod_produto: '',
+  produto_nome: '',
+  und_servicos: '',
+  grupo_id: 'PRODUTO',
+  tipo_produto: 1,
+  componente_id: 0,
+  operacao_id: 0,
+  posto_trabalho_id: 0,
+  fornecedor_ids: [],
+});
+
+const componentesOptions = normalizeOptions(componentes);
+const operacoesOptions = normalizeOptions(operacoes);
+const postosOptions = normalizeOptions(postos);
+const fornecedoresOptions = normalizeOptions(fornecedores);
 
   return (
     <>
@@ -246,23 +285,24 @@ console.log('Fornecedores:', fornecedores);
               <div className="col-span-12 sm:col-span-4">
                 <label className="text-sm text-slate-700">Posto de trabalho</label>
                 <select
-                  name="posto_trabalho_id"
-                  value={form.posto_trabalho_id}
-                  onChange={(e) => handleNumber('posto_trabalho_id', e.target.value)}
-                  disabled={loadingPostos || creating}
-                  className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm"
-                >
-                  <option value={0} disabled={loadingPostos}>
-                    {loadingPostos ? 'Carregando...' : 'Selecione...'}
-                  </option>
-                  {postos.length > 0 &&
-                    postos.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.nome}
-                      </option>
-                    ))}
-                </select>
-              </div>
+                name="posto_trabalho_id"
+                value={form.posto_trabalho_id}
+                onChange={(e) => handleNumber('posto_trabalho_id', e.target.value)}
+                disabled={loadingPostos || creating}
+                className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm"
+              >
+                <option value={0} disabled={loadingPostos}>
+                  {loadingPostos ? 'Carregando...' : 'Selecione...'}
+                </option>
+                {postos.length > 0 &&
+                  postos.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.nome}
+                    </option>
+                  ))}
+              </select>
+
+                </div>
 
               {/* TODO: Fornecedores (replicar padrão de loading + map) */}
             </div>

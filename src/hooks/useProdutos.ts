@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 
-// --- Tipos mínimos internos para não depender de outros arquivos
+// --- Tipos internos
 type ProdutosResponse<T = any> = {
   data: T[];
   page: number;
@@ -11,27 +12,26 @@ type ProdutosResponse<T = any> = {
   total: number;
 };
 
-type ProdutoCreatePayload = {
+export type ProdutoCreatePayload = {
   cod_produto: string;
   produto_nome: string;
   und_servicos: string;
-  grupo_id: 'PRODUTO' | 'SERVICO'; // API SEM acento
+  grupo_id: 'PRODUTO' | 'SERVICO';
   tipo_produto: 1 | 2;
   componente_id: number;
   operacao_id: number;
   posto_trabalho_id: number;
 };
 
-type ProdutoUpdatePayload = Partial<ProdutoCreatePayload>;
+export type ProdutoUpdatePayload = Partial<ProdutoCreatePayload>;
 
-// --- URLs base (ajuste sua .env se necessário)
+// --- URLs
 const baseHTTP = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
-const API_URL = `${baseHTTP}/api/produtos`;
+const API_URL = `${baseHTTP}/api/produto`;
 const baseWS = baseHTTP.startsWith('https')
   ? baseHTTP.replace('https', 'wss')
   : baseHTTP.replace('http', 'ws');
-// Se seu backend usar plural no WS, troque '/api/ws/produto' por '/api/ws/produtos'
-const WS_URL = `${baseWS}/api/ws/produto`;
+const WS_URL = `${baseWS}/api/ws/produtos`;
 
 // --- API helpers
 async function fetchProdutos({ page, pageSize, q }: { page: number; pageSize: number; q?: string }): Promise<ProdutosResponse> {
@@ -63,7 +63,7 @@ async function createProdutoAPI(novo: ProdutoCreatePayload) {
 
 async function updateProdutoAPI(id: number, patch: ProdutoUpdatePayload) {
   const res = await fetch(`${API_URL}/${id}`, {
-    method: 'PUT', // troque para 'PATCH' se sua API suportar
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
   });
@@ -84,19 +84,19 @@ async function deleteProdutoAPI(id: number) {
 }
 
 // --- Hook principal
-export default function useProdutos(initial = { page: 1, pageSize: 10, q: '' }) {
+export default function useProdutos(param?: { page?: number; pageSize?: number; q?: string }) {
   const queryClient = useQueryClient();
 
-  // Estados locais de paginação e busca
-  const [page, setPage] = useState(initial.page);
-  const [pageSize, setPageSize] = useState(initial.pageSize);
-  const [q, setQ] = useState(initial.q);
+  // Valores padrão
+  const page = param?.page ?? 1;
+  const pageSize = param?.pageSize ?? 10;
+  const q = param?.q ?? '';
 
   const queryKey = useMemo(() => ['produtos', { page, pageSize, q }], [page, pageSize, q]);
 
   const produtosQuery = useQuery<ProdutosResponse, Error>({
     queryKey,
-    queryFn: () => fetchProdutos({ page, pageSize, q: q || undefined }),
+    queryFn: () => fetchProdutos({ page, pageSize, q }),
     staleTime: 10 * 60 * 1000,
     keepPreviousData: true,
     refetchOnWindowFocus: false,
@@ -104,45 +104,57 @@ export default function useProdutos(initial = { page: 1, pageSize: 10, q: '' }) 
 
   // Mutations
   const { mutate: createProduto, error: createError, isPending: creating } =
-    useMutation({ mutationFn: createProdutoAPI, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }) });
+    useMutation({
+      mutationFn: createProdutoAPI,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }),
+    });
 
   const { mutate: updateProduto, error: updateError, isPending: updating } =
-    useMutation({ mutationFn: ({ id, patch }: { id: number; patch: ProdutoUpdatePayload }) => updateProdutoAPI(id, patch), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }) });
+    useMutation({
+      mutationFn: ({ id, patch }: { id: number; patch: ProdutoUpdatePayload }) =>
+        updateProdutoAPI(id, patch),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }),
+    });
 
   const { mutate: deleteProduto, error: deleteError, isPending: deleting } =
-    useMutation({ mutationFn: (id: number) => deleteProdutoAPI(id), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }) });
+    useMutation({
+      mutationFn: (id: number) => deleteProdutoAPI(id),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['produtos'] }),
+    });
 
-  // Listener WebSocket para invalidar ao receber 'update' (opcional)
+  // WebSocket para atualizações em tempo real
   useEffect(() => {
     let ws: WebSocket | null = null;
     try {
       ws = new WebSocket(WS_URL);
       ws.onmessage = (event) => {
+        console.log('Mensagem WS recebida:', event.data);
         if (event.data === 'update') {
+          toast.success('Atualização recebida via WebSocket');
           queryClient.invalidateQueries({ queryKey: ['produtos'] });
         }
       };
     } catch (e) {
       console.warn('WS produtos indisponível:', e);
     }
+
     return () => {
-      try { ws?.close(); } catch {}
+      try {
+        ws?.close();
+      } catch {}
     };
   }, [queryClient]);
 
   return {
-    // dados
     produtos: produtosQuery.data?.data ?? [],
     page: produtosQuery.data?.page ?? page,
     totalPages: produtosQuery.data?.pages ?? 1,
     total: produtosQuery.data?.total ?? 0,
 
-    // estados
     isLoading: produtosQuery.isLoading,
     isError: produtosQuery.isError,
     error: produtosQuery.error,
 
-    // mutations
     createProduto,
     createError,
     creating,
@@ -155,10 +167,6 @@ export default function useProdutos(initial = { page: 1, pageSize: 10, q: '' }) 
     deleteError,
     deleting,
 
-    // paginação/busca controladas
-    pageState: { page, setPage, pageSize, setPageSize, q, setQ },
-
-    // util
     refetch: produtosQuery.refetch,
   };
 }

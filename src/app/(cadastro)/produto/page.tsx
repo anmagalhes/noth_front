@@ -39,6 +39,11 @@ export default function ProdutosPage() {
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [busca, setBusca] = useState('');
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [q, setQ] = useState('');
+
+
   const [produtoEditando, setProdutoEditando] = useState<ProdutoDTO | null>(null);
   const [produtoExcluindoId, setProdutoExcluindoId] = useState<number | null>(null);
 
@@ -47,11 +52,9 @@ export default function ProdutosPage() {
     isLoading: loading,
     error,
     total,
-    page,
     totalPages,
     refetch,
-    pageState: { page: p, setPage, pageSize, setPageSize, q, setQ },
-  } = useProdutos({ page: 1, pageSize: 10, q: '' }); // ✅
+  } = useProdutos({ page, pageSize, q });
 
   const erro = error instanceof Error ? error.message : '';
 
@@ -75,6 +78,7 @@ export default function ProdutosPage() {
     await refetch?.();
   }
 
+   // Funções de fallbac
   // Acessos com fallback (ProdutoTabela | Produto)
   const getComponenteNome = (p: ProdutoTabela | ProdutoDTO) =>
     (p as any).componente_nome ??
@@ -185,7 +189,7 @@ export default function ProdutosPage() {
     {erro && <p className="mt-2 text-sm text-red-600">Erro: {erro}</p>}
   </div>
 
-         {/* Tabela (100% largura, mais espaço vertical e respiro) */}
+{/* Tabela (100% largura, mais espaço vertical e respiro) */}
 <div className="col-span-12">
   {/* Card da tabela: flex para crescer; min-h-0 evita overflow em layouts flex */}
   <div className="flex min-h-0 flex-col rounded border bg-white shadow-sm">

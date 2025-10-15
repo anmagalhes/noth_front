@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import usePostosTrabalho from '@/hooks/usePostosTrabalhoWs'
+import React, { useEffect, useRef, useState } from 'react';
+import usePostosTrabalho from '@/hooks/usePostosTrabalhoWs';
 import type { PostoTrabalhoItem } from '@/types/posto_trabalho';
 
 type Props = {
@@ -18,22 +18,43 @@ export default function PostoTrabalhoEditDialog({
   onClose,
 }: Props) {
   const { updatePosto, updating } = usePostosTrabalho();
-
   const [isOpen, setIsOpen] = useState(open);
   const [nome, setNome] = useState('');
   const [erro, setErro] = useState<string>('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const titleId = 'edit-posto-title';
 
-  // Sincroniza abertura externa
+  // Sincroniza abertura externa e limpa erro
   useEffect(() => {
     setIsOpen(open);
     if (open) setErro('');
   }, [open]);
 
-  // Carrega valores iniciais quando receber `posto`
+  // Carrega valores iniciais ao receber `posto`
   useEffect(() => {
     if (!posto) return;
     setNome(posto.posto_trabalho_nome ?? '');
   }, [posto]);
+
+  // Foco automático no input quando abrir
+  useEffect(() => {
+    if (isOpen) {
+      // espera um tick para garantir que renderizou
+      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen]);
+
+  // Fecha com ESC (se não estiver salvando)
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && isOpen && !updating) {
+        close();
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, updating]);
 
   function close() {
     setIsOpen(false);
@@ -53,11 +74,9 @@ export default function PostoTrabalhoEditDialog({
       return;
     }
 
-    // PATCH/PUT: envia apenas o campo necessário
     const patch = {
       posto_trabalho_nome: nome.trim(),
-      // Se seu backend ainda exigir `data_execucao` no PUT,
-      // descomente a linha abaixo para evitar 422:
+      // Se o backend exigir `data_execucao` no PUT, reenvie junto:
       // data_execucao: posto.data_execucao,
     };
 
@@ -84,7 +103,12 @@ export default function PostoTrabalhoEditDialog({
   if (!isOpen || !posto) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+    >
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/40"
@@ -93,7 +117,9 @@ export default function PostoTrabalhoEditDialog({
       {/* Conteúdo */}
       <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-4 shadow-lg">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Editar Posto de Trabalho</h3>
+          <h3 id={titleId} className="text-lg font-semibold">
+            Editar Posto de Trabalho
+          </h3>
           <button
             onClick={() => !updating && close()}
             className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100"
@@ -112,9 +138,16 @@ export default function PostoTrabalhoEditDialog({
           <div className="col-span-12">
             <label className="text-sm text-slate-700">Nome do Posto de Trabalho</label>
             <input
+              ref={inputRef}
               name="posto_trabalho_nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  submit();
+                }
+              }}
               maxLength={50}
               placeholder="Ex.: Linha 01 - Montagem"
               className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
@@ -132,7 +165,7 @@ export default function PostoTrabalhoEditDialog({
           </button>
           <button
             onClick={submit}
-            disabled={updating}
+            disabled={updating || !nome.trim()}
             className="rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
             {updating ? 'Salvando...' : 'Salvar'}

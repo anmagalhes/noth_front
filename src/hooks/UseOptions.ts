@@ -17,7 +17,7 @@ export function useOptions(endpoint: string) {
 
       return raw.map((item: any) => ({
         id: item.id,
-        nome: item.nome ?? item.componente_nome ?? item.op_nome ?? item.posto_nome,
+        nome: item.nome ?? item.componente_nome ?? item.op_nome ?? item.posto_trabalho_nome
       }));
     },
     staleTime: 10 * 60 * 1000,
